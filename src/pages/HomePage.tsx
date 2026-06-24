@@ -2,13 +2,18 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   AlertTriangle, CheckCircle, ChevronRight, Users,
-  Clock, CalendarDays, RefreshCw, FileText, ClipboardList, X,
+  Clock, CalendarDays, RefreshCw, ClipboardList, X,
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { users, tasks, isThreeSetComplete, type TaskPriority } from '@/data/mockData'
 import { useEvents, type KasanTask, EVENT_TYPE_META } from '@/contexts/EventContext'
 
-const BRAND = '#3C3489'
+const BRAND        = '#5C8A70'
+const BRAND_LIGHT  = '#EAF3EE'
+const TEXT         = '#2D3A33'
+const TEXT_SUB     = '#6B7C74'
+const BORDER       = '#DDE5E0'
+const ALERT_RED    = '#D94F4F'
+const ALERT_YELLOW = '#E8A838'
 
 function getDaysElapsed(dateStr: string): number {
   const d = new Date(dateStr)
@@ -39,42 +44,40 @@ function KasanResolveModal({ task, onResolve, onClose }: { task: KasanTask; onRe
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h3 className="font-bold text-gray-900">加算対応を記録</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
+        <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: BORDER }}>
+          <h3 className="font-semibold" style={{ color: TEXT }}>加算対応を記録</h3>
+          <button onClick={onClose} style={{ color: TEXT_SUB }}><X size={18} /></button>
         </div>
         <div className="px-6 py-5 space-y-4">
-          <div className="p-3 rounded-xl" style={{ backgroundColor: '#EDE9FE' }}>
-            <p className="text-xs text-gray-500 mb-0.5">加算名</p>
-            <p className="text-sm font-semibold text-gray-900">{task.kasanName}</p>
-            <p className="text-xs text-gray-500 mt-0.5">{task.userName}</p>
+          <div className="p-3 rounded-xl" style={{ backgroundColor: BRAND_LIGHT }}>
+            <p className="text-xs mb-0.5" style={{ color: TEXT_SUB }}>加算名</p>
+            <p className="text-sm font-semibold" style={{ color: TEXT }}>{task.kasanName}</p>
+            <p className="text-xs mt-0.5" style={{ color: TEXT_SUB }}>{task.userName}</p>
           </div>
           <div>
-            <label className="text-xs font-semibold text-gray-500 mb-1.5 block">対応日</label>
-            <input
-              type="date"
-              className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:border-purple-300"
-              value={doneAt}
-              onChange={e => setDoneAt(e.target.value)}
-            />
+            <label className="text-xs font-semibold mb-1.5 block" style={{ color: TEXT_SUB }}>対応日</label>
+            <input type="date"
+              className="w-full text-sm border rounded-lg px-3 py-2 focus:outline-none focus:border-[#5C8A70]"
+              style={{ borderColor: BORDER }}
+              value={doneAt} onChange={e => setDoneAt(e.target.value)} />
           </div>
           <div>
-            <label className="text-xs font-semibold text-gray-500 mb-1.5 block">対応内容</label>
+            <label className="text-xs font-semibold mb-1.5 block" style={{ color: TEXT_SUB }}>対応内容</label>
             <textarea
-              className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:border-purple-300 resize-none"
-              rows={4}
-              placeholder="例）○○病院の担当者に電話にて情報提供"
-              value={content}
-              onChange={e => setContent(e.target.value)}
-            />
+              className="w-full text-sm border rounded-lg px-3 py-2 focus:outline-none focus:border-[#5C8A70] resize-none"
+              style={{ borderColor: BORDER }}
+              rows={4} placeholder="例）○○病院の担当者に電話にて情報提供"
+              value={content} onChange={e => setContent(e.target.value)} />
           </div>
         </div>
-        <div className="flex gap-3 px-6 py-4 border-t border-gray-100">
-          <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 font-semibold hover:bg-gray-50">キャンセル</button>
+        <div className="flex gap-3 px-6 py-4 border-t" style={{ borderColor: BORDER }}>
+          <button onClick={onClose}
+            className="flex-1 py-2.5 rounded-lg border text-sm font-semibold hover:bg-gray-50"
+            style={{ borderColor: BORDER, color: TEXT_SUB }}>キャンセル</button>
           <button
             onClick={() => { if (doneAt) { onResolve(doneAt, content); onClose() } }}
             disabled={!doneAt}
-            className="flex-1 py-2.5 rounded-xl text-white text-sm font-semibold disabled:opacity-40"
+            className="flex-1 py-2.5 rounded-lg text-white text-sm font-semibold disabled:opacity-40"
             style={{ backgroundColor: BRAND }}
           >記録する</button>
         </div>
@@ -83,36 +86,33 @@ function KasanResolveModal({ task, onResolve, onClose }: { task: KasanTask; onRe
   )
 }
 
-// ── Priority badge (icon + label stacked) ──────────────────────────────────
+// ── Priority badge ─────────────────────────────────────────────────────────
 function PriorityBadge({ priority }: { priority: TaskPriority }) {
   const map = {
-    urgent:    { Icon: AlertTriangle, label: '緊急',  bg: '#FFF1F0', color: '#DC2626', border: '#FECACA' },
-    thisweek:  { Icon: Clock,         label: '今週中', bg: '#FFF7ED', color: '#C2410C', border: '#FED7AA' },
-    thismonth: { Icon: CalendarDays,  label: '今月中', bg: '#FEFCE8', color: '#A16207', border: '#FDE68A' },
-    inprogress:{ Icon: RefreshCw,     label: '対応中', bg: '#EFF6FF', color: '#1D4ED8', border: '#BFDBFE' },
+    urgent:    { Icon: AlertTriangle, label: '緊急',  bg: '#FFF0F0', color: ALERT_RED,    border: '#FBBFBF' },
+    thisweek:  { Icon: Clock,         label: '今週中', bg: '#FFFBF0', color: ALERT_YELLOW, border: '#FCD34D' },
+    thismonth: { Icon: CalendarDays,  label: '今月中', bg: '#FFFBF0', color: ALERT_YELLOW, border: '#FCD34D' },
+    inprogress:{ Icon: RefreshCw,     label: '対応中', bg: BRAND_LIGHT, color: BRAND,     border: '#B8D8C4' },
   }
   const c = map[priority]
   return (
-    <div
-      className="flex flex-col items-center justify-center w-[64px] h-[64px] rounded-xl flex-shrink-0 border-2"
-      style={{ backgroundColor: c.bg, borderColor: c.border }}
-    >
-      <c.Icon size={18} style={{ color: c.color }} />
+    <div className="flex flex-col items-center justify-center w-[56px] h-[56px] rounded-xl flex-shrink-0 border-2"
+      style={{ backgroundColor: c.bg, borderColor: c.border }}>
+      <c.Icon size={16} style={{ color: c.color }} />
       <span className="text-xs font-bold mt-0.5" style={{ color: c.color }}>{c.label}</span>
     </div>
   )
 }
 
-// ── User status badge ───────────────────────────────────────────────────────
+// ── User status badge ──────────────────────────────────────────────────────
 const statusConfig: Record<string, { label: string; Icon: React.FC<{ size?: number; className?: string }>; bg: string; color: string; border: string }> = {
-  expired:    { label: '認定切れ', Icon: AlertTriangle, bg: '#FEE2E2', color: '#B91C1C', border: '#FCA5A5' },
-  warning:    { label: '期限間近', Icon: Clock,         bg: '#FEF3C7', color: '#B45309', border: '#FCD34D' },
-  inprogress: { label: '対応中',   Icon: RefreshCw,     bg: '#DBEAFE', color: '#1D4ED8', border: '#93C5FD' },
-  active:     { label: '利用中',   Icon: CheckCircle,   bg: '#DCFCE7', color: '#15803D', border: '#86EFAC' },
+  expired:    { label: '認定切れ', Icon: AlertTriangle, bg: '#FFF0F0', color: ALERT_RED,    border: '#FBBFBF' },
+  warning:    { label: '期限間近', Icon: Clock,         bg: '#FFFBF0', color: ALERT_YELLOW, border: '#FCD34D' },
+  inprogress: { label: '対応中',   Icon: RefreshCw,     bg: BRAND_LIGHT, color: BRAND,     border: '#B8D8C4' },
+  active:     { label: '利用中',   Icon: CheckCircle,   bg: BRAND_LIGHT, color: BRAND,     border: '#B8D8C4' },
 }
 
-// ── Avatar colors per user index ───────────────────────────────────────────
-const avatarColors = ['#6B5BDB', '#4B7FE5', '#0D9488', '#D97706', '#059669']
+const avatarColors = [BRAND, '#3D6B54', '#6B7C74', '#E8A838', '#D94F4F']
 
 export function HomePage() {
   const navigate = useNavigate()
@@ -132,247 +132,205 @@ export function HomePage() {
   return (
     <>
     <div className="p-6 max-w-[1200px]">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">ホーム</h1>
-        <p className="text-gray-500 text-sm mt-1">アラートとタスクを確認して、次の対応を進めましょう。</p>
+      <div className="mb-5">
+        <h1 className="text-xl font-semibold" style={{ color: TEXT }}>ホーム</h1>
+        <p className="text-sm mt-0.5" style={{ color: TEXT_SUB }}>アラートとタスクを確認して、次の対応を進めましょう。</p>
       </div>
 
-      {/* ── Summary cards ── */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        {/* 担当利用者 */}
-        <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-md flex items-center gap-5">
-          <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#EDE9FE' }}>
-            <Users size={26} style={{ color: BRAND }} />
-          </div>
-          <div>
-            <p className="text-sm text-gray-600 font-semibold mb-0.5">担当利用者</p>
-            <p className="font-black text-gray-900" style={{ fontSize: '32px', lineHeight: '1.1' }}>5<span className="text-base font-semibold text-gray-500 ml-1">名</span></p>
-          </div>
-        </div>
-
-        {/* 期限切れ書類 */}
-        <div className="bg-white rounded-2xl p-6 border border-red-200 shadow-md flex items-center gap-5">
-          <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#FEE2E2' }}>
-            <FileText size={26} className="text-red-600" />
-          </div>
-          <div>
-            <p className="text-sm text-gray-600 font-semibold mb-0.5">期限切れ書類</p>
-            <p className="font-black text-red-600" style={{ fontSize: '32px', lineHeight: '1.1' }}>2<span className="text-base font-semibold text-gray-500 ml-1">件</span></p>
-          </div>
-        </div>
-
-        {/* 今月のモニタリング */}
-        <div
-          className={cn(
-            'rounded-2xl p-6 border shadow-md transition-colors',
-            isNearMonthEnd ? 'bg-red-50 border-red-300' : 'bg-white border-gray-200'
-          )}
-        >
-          <div className="flex items-start gap-3 mb-3">
-            <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0', isNearMonthEnd ? 'bg-red-100' : 'bg-gray-100')}>
-              <ClipboardList size={22} className={isNearMonthEnd ? 'text-red-600' : 'text-gray-500'} />
-            </div>
-            <div>
-              <p className="text-sm text-gray-600 font-semibold">今月のモニタリング</p>
-              <p className={cn('font-black mt-0.5', isNearMonthEnd ? 'text-red-600' : 'text-gray-900')} style={{ fontSize: '32px', lineHeight: '1.1' }}>
-                {visitedCount}<span className="text-base font-semibold text-gray-500 ml-1">/{totalMonitoring} 訪問済み</span>
+      {/* ── 今日の状況バー ── */}
+      <div className="flex items-center justify-around rounded-xl mb-5 px-6"
+        style={{ backgroundColor: BRAND_LIGHT, height: '64px', border: `1px solid #B8D8C4` }}>
+        {[
+          { value: '5', unit: '名',   label: '担当利用者',         color: TEXT },
+          { value: `${visitedCount}/${totalMonitoring}`, unit: '', label: '今月のモニタリング', color: visitedCount === totalMonitoring ? BRAND : TEXT },
+          { value: '2', unit: '件',   label: '期限切れ書類',       color: ALERT_RED },
+          { value: String(daysUntilEnd), unit: '日', label: '月末まで残り',   color: isNearMonthEnd ? ALERT_RED : TEXT },
+        ].map((item, i, arr) => (
+          <div key={item.label} className="flex items-center gap-4">
+            <div className="text-center">
+              <p className="font-bold leading-none" style={{ fontSize: '22px', color: item.color }}>
+                {item.value}<span className="text-xs font-semibold ml-0.5" style={{ color: TEXT_SUB }}>{item.unit}</span>
               </p>
+              <p className="text-xs font-medium mt-1" style={{ color: TEXT_SUB }}>{item.label}</p>
             </div>
+            {i < arr.length - 1 && <div className="w-px h-7" style={{ backgroundColor: '#B8D8C4' }} />}
           </div>
-          <div className="space-y-1 text-sm text-gray-600 mb-3">
-            <p>残り <span className="font-bold text-gray-800">{remainingCount}名</span></p>
-            <p>月末まで残り <span className={cn('font-bold', isNearMonthEnd ? 'text-red-600' : 'text-gray-800')}>{daysUntilEnd}日</span></p>
-          </div>
-          <button
-            onClick={() => navigate('/users/1?maintab=kiroku')}
-            className={cn('flex items-center gap-1 text-sm font-bold transition-colors hover:opacity-70', isNearMonthEnd ? 'text-red-600' : '')}
-            style={!isNearMonthEnd ? { color: BRAND } : undefined}
-          >
-            モニタリング一覧へ
-            <ChevronRight size={14} />
-          </button>
-        </div>
+        ))}
       </div>
 
-      <div className="grid grid-cols-3 gap-5 mb-6">
-        {/* ── 近々のタスク ── */}
-        <div className="col-span-2 bg-white rounded-2xl border border-gray-200 shadow-md overflow-hidden">
-          <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200">
-            <h2 className="font-bold text-xl text-gray-900">⚡ 近々のタスク</h2>
-            <span className="text-sm text-gray-500">優先度順 / クリックで対応画面へ</span>
+      {/* ── 2カラム：タスク＋進捗 ── */}
+      <div className="grid grid-cols-3 gap-5 mb-5">
+
+        {/* 今日・今週やること（2/3幅） */}
+        <div className="col-span-2 bg-white rounded-xl border overflow-hidden"
+          style={{ borderColor: BORDER, boxShadow: '0 1px 4px rgba(45,58,51,0.08)' }}>
+          <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: BORDER }}>
+            <h2 className="font-semibold text-lg" style={{ color: TEXT }}>⚡ 今日・今週やること</h2>
+            <span className="text-xs" style={{ color: TEXT_SUB }}>優先度順 / クリックで対応画面へ</span>
           </div>
-          <div className="p-4 space-y-3">
+          <div className="p-4 space-y-2.5">
             {isNearMonthEnd && remainingCount > 0 && (
               <div
-                className="flex items-center gap-4 px-5 py-4 rounded-xl border-2 border-red-300 cursor-pointer hover:bg-red-100 transition-all"
-                style={{ backgroundColor: '#FFF5F5' }}
+                className="flex items-center gap-4 px-4 py-3.5 rounded-xl cursor-pointer hover:opacity-90 transition-all"
+                style={{ backgroundColor: '#FFF0F0', borderLeft: `4px solid ${ALERT_RED}` }}
                 onClick={() => navigate('/users/1?maintab=kiroku')}
               >
-                <div className="flex flex-col items-center justify-center w-[64px] h-[64px] rounded-xl flex-shrink-0 border-2 border-red-300" style={{ backgroundColor: '#FEE2E2' }}>
-                  <AlertTriangle size={20} className="text-red-600" />
-                  <span className="text-xs font-bold mt-0.5 text-red-600">緊急</span>
+                <div className="flex flex-col items-center justify-center w-[56px] h-[56px] rounded-xl flex-shrink-0 border-2"
+                  style={{ backgroundColor: '#FFF0F0', borderColor: '#FBBFBF' }}>
+                  <AlertTriangle size={16} style={{ color: ALERT_RED }} />
+                  <span className="text-xs font-bold mt-0.5" style={{ color: ALERT_RED }}>緊急</span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline gap-2">
-                    <span className="font-bold text-base text-red-700">未訪問 {remainingCount}名</span>
-                    <span className="font-bold text-base text-gray-800">今月のモニタリング訪問が未完了</span>
+                    <span className="font-bold text-sm" style={{ color: ALERT_RED }}>未訪問 {remainingCount}名</span>
+                    <span className="font-semibold text-sm" style={{ color: TEXT }}>今月のモニタリング訪問が未完了</span>
                   </div>
-                  <p className="text-sm text-gray-600 mt-0.5">月末まで残り{daysUntilEnd}日</p>
+                  <p className="text-xs mt-0.5" style={{ color: TEXT_SUB }}>月末まで残り{daysUntilEnd}日</p>
                 </div>
-                <span className="flex items-center gap-1 text-base font-bold flex-shrink-0 text-red-600">
-                  モニタリングへ
-                  <ChevronRight size={16} />
+                <span className="flex items-center gap-1 text-sm font-bold flex-shrink-0" style={{ color: ALERT_RED }}>
+                  モニタリングへ<ChevronRight size={14} />
                 </span>
               </div>
             )}
+
             {pendingKasanTasks.map(kt => (
-              <div
-                key={kt.id}
-                className="flex items-center gap-4 px-5 py-4 rounded-xl border-2 border-orange-200 transition-all"
-                style={{ backgroundColor: '#FFFBEB' }}
-              >
+              <div key={kt.id}
+                className="flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all"
+                style={{ backgroundColor: '#FFFBF0', borderLeft: `4px solid ${ALERT_YELLOW}` }}>
                 <PriorityBadge priority={kt.priority} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline gap-2">
-                    <span className="font-bold text-base text-gray-900">{kt.userName}</span>
-                    <span className="font-bold text-base text-gray-800">{kt.kasanName}</span>
+                    <span className="font-semibold text-sm" style={{ color: TEXT }}>{kt.userName}</span>
+                    <span className="font-semibold text-sm" style={{ color: TEXT }}>{kt.kasanName}</span>
                   </div>
-                  <p className="text-sm text-gray-600 mt-0.5">{getKasanTaskDetail(kt)}</p>
+                  <p className="text-xs mt-0.5" style={{ color: TEXT_SUB }}>{getKasanTaskDetail(kt)}</p>
                 </div>
-                <button
-                  onClick={() => setResolveTarget(kt)}
-                  className="flex items-center gap-1 text-sm font-bold flex-shrink-0 hover:opacity-70 transition-opacity"
-                  style={{ color: BRAND }}
-                >
-                  対応済みとして記録する
-                  <ChevronRight size={14} />
+                <button onClick={() => setResolveTarget(kt)}
+                  className="flex items-center gap-1 text-xs font-bold flex-shrink-0 hover:opacity-70 transition-opacity"
+                  style={{ color: BRAND }}>
+                  対応済みとして記録する<ChevronRight size={13} />
                 </button>
               </div>
             ))}
-            {/* 三点セット未完了アラート */}
+
             {users.filter(u => !isThreeSetComplete(u.id)).map(u => (
-              <div
-                key={`threeset-${u.id}`}
-                className="flex items-center gap-4 px-5 py-4 rounded-xl border border-yellow-200 hover:border-yellow-400 hover:bg-yellow-50/60 cursor-pointer transition-all"
-                style={{ backgroundColor: '#FFFBEB' }}
-                onClick={() => navigate(`/users/${u.id}?maintab=shorui&tab=jibun`)}
-              >
+              <div key={`threeset-${u.id}`}
+                className="flex items-center gap-4 px-4 py-3.5 rounded-xl cursor-pointer hover:opacity-90 transition-all"
+                style={{ backgroundColor: '#FFFBF0', borderLeft: `4px solid ${ALERT_YELLOW}` }}
+                onClick={() => navigate(`/users/${u.id}?maintab=shorui&tab=jibun`)}>
                 <PriorityBadge priority="thismonth" />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline gap-2">
-                    <span className="font-bold text-lg text-gray-900">{u.name.split(' ')[1]}さん</span>
-                    <span className="font-bold text-base text-gray-800">ケアプラン更新</span>
+                    <span className="font-semibold text-base" style={{ color: TEXT }}>{u.name.split(' ')[1]}さん</span>
+                    <span className="font-semibold text-sm" style={{ color: TEXT }}>ケアプラン更新</span>
                   </div>
-                  <p className="text-sm text-gray-600 mt-0.5">三点セットが未完了です</p>
+                  <p className="text-xs mt-0.5" style={{ color: TEXT_SUB }}>三点セットが未完了です</p>
                 </div>
-                <span
-                  className="flex items-center gap-1 text-base font-bold flex-shrink-0"
-                  style={{ color: '#A16207' }}
-                >
-                  書類タブへ
-                  <ChevronRight size={16} />
+                <span className="flex items-center gap-1 text-sm font-bold flex-shrink-0" style={{ color: ALERT_YELLOW }}>
+                  書類タブへ<ChevronRight size={14} />
                 </span>
               </div>
             ))}
+
             {tasks.map(task => (
-              <div
-                key={task.id}
-                className="flex items-center gap-4 px-5 py-4 rounded-xl border border-gray-200 hover:border-purple-300 hover:bg-purple-50/30 cursor-pointer transition-all"
-                onClick={() => navigate(task.link)}
-              >
+              <div key={task.id}
+                className="flex items-center gap-4 px-4 py-3.5 rounded-xl cursor-pointer hover:opacity-90 transition-all"
+                style={{ backgroundColor: 'white', border: `1px solid ${BORDER}` }}
+                onClick={() => navigate(task.link)}>
                 <PriorityBadge priority={task.priority} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline gap-2">
-                    <span className="font-bold text-lg text-gray-900">{task.userName}</span>
-                    <span className="font-bold text-base text-gray-800">{task.title}</span>
+                    <span className="font-semibold text-base" style={{ color: TEXT }}>{task.userName}</span>
+                    <span className="font-semibold text-sm" style={{ color: TEXT }}>{task.title}</span>
                   </div>
-                  <p className="text-sm text-gray-600 mt-0.5">{task.detail}</p>
+                  <p className="text-xs mt-0.5" style={{ color: TEXT_SUB }}>{task.detail}</p>
                 </div>
-                <span
-                  className="flex items-center gap-1 text-base font-bold flex-shrink-0"
-                  style={{ color: BRAND }}
-                >
-                  {task.action}
-                  <ChevronRight size={16} />
+                <span className="flex items-center gap-1 text-sm font-bold flex-shrink-0" style={{ color: BRAND }}>
+                  {task.action}<ChevronRight size={14} />
                 </span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* ── 今月の進捗 ── */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-md p-6">
-          <h2 className="font-bold text-xl text-gray-900 mb-5">今月の進捗</h2>
+        {/* 今月の進捗（1/3幅） */}
+        <div className="bg-white rounded-xl border p-6"
+          style={{ borderColor: BORDER, boxShadow: '0 1px 4px rgba(45,58,51,0.08)' }}>
+          <h2 className="font-semibold text-base mb-5" style={{ color: TEXT }}>今月の進捗</h2>
           <div className="space-y-5">
-            <div>
-              <div className="flex justify-between text-base mb-2">
-                <span className="text-gray-700 font-medium">モニタリング実施率</span>
-                <span className="font-bold text-gray-600">0/5</span>
+            {[
+              { label: 'モニタリング実施率', value: `${visitedCount}/5`, width: '0%',   color: '#DDE5E0' },
+              { label: '書類期限管理',       value: '2/4',              width: '50%',  color: BRAND     },
+              { label: 'コンプライアンス',   value: '100%',             width: '100%', color: BRAND     },
+            ].map(item => (
+              <div key={item.label}>
+                <div className="flex justify-between text-sm mb-2">
+                  <span className="font-medium" style={{ color: TEXT_SUB }}>{item.label}</span>
+                  <span className="font-semibold" style={{ color: TEXT }}>{item.value}</span>
+                </div>
+                <div className="w-full rounded-full h-2.5" style={{ backgroundColor: '#EEF1EF' }}>
+                  <div className="h-2.5 rounded-full transition-all" style={{ width: item.width, backgroundColor: item.color }} />
+                </div>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-3">
-                <div className="h-3 rounded-full bg-gray-300" style={{ width: '0%' }} />
-              </div>
+            ))}
+          </div>
+
+          {/* モニタリング詳細 */}
+          <div className="mt-6 pt-5 border-t" style={{ borderColor: BORDER }}>
+            <div className="flex items-center gap-2 mb-3">
+              <ClipboardList size={15} style={{ color: BRAND }} />
+              <span className="text-sm font-semibold" style={{ color: TEXT }}>今月のモニタリング</span>
             </div>
-            <div>
-              <div className="flex justify-between text-base mb-2">
-                <span className="text-gray-700 font-medium">書類期限管理</span>
-                <span className="font-bold text-gray-800">2/4</span>
-              </div>
-              <div className="w-full bg-gray-100 rounded-full h-3">
-                <div className="h-3 rounded-full" style={{ width: '50%', backgroundColor: BRAND }} />
-              </div>
-            </div>
-            <div>
-              <div className="flex justify-between text-base mb-2">
-                <span className="text-gray-700 font-medium">コンプライアンス</span>
-                <span className="font-bold text-green-700">100%</span>
-              </div>
-              <div className="w-full bg-gray-100 rounded-full h-3">
-                <div className="h-3 rounded-full bg-green-500" style={{ width: '100%' }} />
-              </div>
-            </div>
+            <p className="text-xs mb-2" style={{ color: TEXT_SUB }}>
+              残り <span className="font-bold" style={{ color: TEXT }}>{remainingCount}名</span>
+              月末まで <span className="font-bold" style={{ color: isNearMonthEnd ? ALERT_RED : TEXT }}>{daysUntilEnd}日</span>
+            </p>
+            <button
+              onClick={() => navigate('/users/1?maintab=kiroku')}
+              className="flex items-center gap-1 text-xs font-bold transition-colors hover:opacity-70"
+              style={{ color: BRAND }}>
+              モニタリング一覧へ<ChevronRight size={12} />
+            </button>
           </div>
         </div>
       </div>
 
       {/* ── 利用者ステータス一覧 ── */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-md overflow-hidden">
-        <div className="px-6 py-5 border-b border-gray-200">
-          <h2 className="font-bold text-xl text-gray-900">利用者ステータス一覧</h2>
+      <div className="bg-white rounded-xl border overflow-hidden"
+        style={{ borderColor: BORDER, boxShadow: '0 1px 4px rgba(45,58,51,0.08)' }}>
+        <div className="px-6 py-4 border-b" style={{ borderColor: BORDER }}>
+          <div className="flex items-center gap-2">
+            <Users size={16} style={{ color: BRAND }} />
+            <h2 className="font-semibold text-base" style={{ color: TEXT }}>利用者ステータス一覧</h2>
+          </div>
         </div>
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y" style={{ borderColor: '#F0F4F2' }}>
           {users.map((user, idx) => {
             const sc = statusConfig[user.status]
             return (
-              <div
-                key={user.id}
-                className="flex items-center gap-4 px-6 py-5 hover:bg-gray-50 cursor-pointer transition-colors"
-                onClick={() => navigate(`/users/${user.id}`)}
-              >
-                <div
-                  className="w-12 h-12 rounded-full flex items-center justify-center text-white text-lg font-bold flex-shrink-0"
-                  style={{ backgroundColor: avatarColors[idx % avatarColors.length] }}
-                >
+              <div key={user.id}
+                className="flex items-center gap-4 px-6 py-4 hover:bg-[#F7FAF8] cursor-pointer transition-colors"
+                onClick={() => navigate(`/users/${user.id}`)}>
+                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
+                  style={{ backgroundColor: avatarColors[idx % avatarColors.length] }}>
                   {user.name[0]}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-gray-900 text-lg">{user.name}</p>
-                  <p className="text-sm text-gray-600 mt-0.5">{user.careLevel} ／ 担当：{user.manager}</p>
+                  <p className="font-semibold" style={{ color: TEXT }}>{user.name}</p>
+                  <p className="text-xs mt-0.5" style={{ color: TEXT_SUB }}>{user.careLevel} ／ 担当：{user.manager}</p>
                 </div>
-                <span
-                  className="flex items-center gap-1.5 text-sm font-bold px-3 py-1.5 rounded-xl border-2"
-                  style={{ backgroundColor: sc.bg, color: sc.color, borderColor: sc.border }}
-                >
-                  <sc.Icon size={13} />
-                  {sc.label}
+                <span className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg border"
+                  style={{ backgroundColor: sc.bg, color: sc.color, borderColor: sc.border }}>
+                  <sc.Icon size={12} />{sc.label}
                 </span>
-                <ChevronRight size={18} className="text-gray-400" />
+                <ChevronRight size={16} style={{ color: BORDER }} />
               </div>
             )
           })}
         </div>
       </div>
     </div>
+
     {resolveTarget && (
       <KasanResolveModal
         task={resolveTarget}

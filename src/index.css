@@ -1,5 +1,21 @@
 @import "tailwindcss";
 
+@theme {
+  --color-primary:       #5C8A70;
+  --color-primary-light: #EAF3EE;
+  --color-primary-dark:  #3D6B54;
+  --color-bg:            #F7F6F3;
+  --color-surface:       #FFFFFF;
+  --color-text:          #2D3A33;
+  --color-text-sub:      #6B7C74;
+  --color-border:        #DDE5E0;
+  --color-alert-red:     #D94F4F;
+  --color-alert-yellow:  #E8A838;
+  --color-alert-green:   #5C8A70;
+  --color-sidebar-bg:    #2D3A33;
+  --color-sidebar-text:  #E8F0EC;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -23,39 +39,21 @@
     --ring: 240 10% 3.9%;
     --radius: 0.5rem;
   }
-  .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
-  }
 }
 
 @layer base {
-  * {
-    border-color: hsl(var(--border));
-  }
+  * { box-sizing: border-box; }
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
   }
 }
 
-html { font-size: 112.5%; }   /* 18px base: scales all rem values up ~12.5% */
-body { margin: 0; -webkit-font-smoothing: antialiased; }
-* { box-sizing: border-box; }
+html {
+  font-size: 15px;
+}
+body {
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  font-family: 'Noto Sans JP', sans-serif;
+}

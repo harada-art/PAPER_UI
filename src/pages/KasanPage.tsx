@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, Plus, X } from 'lucide-react'
 import { useEvents, EVENT_TYPE_META } from '@/contexts/EventContext'
 
-const BRAND = '#3C3489'
-const LIGHT_GREEN = '#EAF3DE'
+const BRAND = '#5C8A70'
+const LIGHT_GREEN = '#EAF3EE'
 
 type KasanType = 'periodic' | 'event'
 type KasanStatus = 'active' | 'inactive'
@@ -44,8 +44,8 @@ const INITIAL_KASAN: KasanEntry[] = [
 
 function StatusBadge({ status }: { status: KasanStatus }) {
   return status === 'active'
-    ? <span className="text-sm px-3 py-1 rounded-full bg-green-100 text-green-700 border-2 border-green-300 font-bold whitespace-nowrap">算定中</span>
-    : <span className="text-sm px-3 py-1 rounded-full bg-gray-100 text-gray-600 border-2 border-gray-200 font-semibold whitespace-nowrap">対象外</span>
+    ? <span className="text-sm px-3 py-1 rounded-full font-bold whitespace-nowrap text-white" style={{ backgroundColor: '#5C8A70' }}>算定中</span>
+    : <span className="text-sm px-3 py-1 rounded-full font-semibold whitespace-nowrap" style={{ backgroundColor: '#F3F6F4', color: '#6B7C74', border: '1px solid #DDE5E0' }}>対象外</span>
 }
 
 interface EditModalProps {
@@ -79,7 +79,7 @@ function EditModal({ entry, isNew, onSave, onClose }: EditModalProps) {
             <label className="text-xs font-semibold text-gray-500 mb-1.5 block">加算名</label>
             <input
               type="text"
-              className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:border-purple-300"
+              className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:border-[#5C8A70]"
               value={form.name}
               onChange={e => set('name', e.target.value)}
             />
@@ -91,7 +91,7 @@ function EditModal({ entry, isNew, onSave, onClose }: EditModalProps) {
             <div className="flex gap-5">
               {typeOptions.map(([val, label]) => (
                 <label key={val} className="flex items-center gap-2 cursor-pointer">
-                  <input type="radio" name="kasan-type" style={{ accentColor: BRAND }} checked={form.type === val} onChange={() => set('type', val)} />
+                  <input type="radio" name="kasan-type" style={{ accentColor: '#5C8A70' }} checked={form.type === val} onChange={() => set('type', val)} />
                   <span className="text-sm text-gray-700">{label}</span>
                 </label>
               ))}
@@ -104,7 +104,7 @@ function EditModal({ entry, isNew, onSave, onClose }: EditModalProps) {
             <div className="flex gap-5">
               {statusOptions.map(([val, label]) => (
                 <label key={val} className="flex items-center gap-2 cursor-pointer">
-                  <input type="radio" name="kasan-status" style={{ accentColor: BRAND }} checked={form.status === val} onChange={() => set('status', val)} />
+                  <input type="radio" name="kasan-status" style={{ accentColor: '#5C8A70' }} checked={form.status === val} onChange={() => set('status', val)} />
                   <span className="text-sm text-gray-700">{label}</span>
                 </label>
               ))}
@@ -115,7 +115,7 @@ function EditModal({ entry, isNew, onSave, onClose }: EditModalProps) {
           <div>
             <label className="text-xs font-semibold text-gray-500 mb-1.5 block">要件説明</label>
             <textarea
-              className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:border-purple-300 resize-none"
+              className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:border-[#5C8A70] resize-none"
               rows={4}
               placeholder="例）常勤専従の主任ケアマネが1名以上配置されていること"
               value={form.requirements}
@@ -264,14 +264,14 @@ export function KasanPage() {
                   <td className="px-6 py-4">
                     <span className="font-bold text-gray-900 text-base">{k.name}</span>
                     {k.status === 'active' && (
-                      <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 border border-green-300 font-bold">算定中</span>
+                      <span className="ml-2 text-xs px-2 py-0.5 rounded-full font-bold text-white" style={{ backgroundColor: '#5C8A70' }}>算定中</span>
                     )}
                   </td>
                   <td className="px-4 py-4 text-center">
                     <input
                       type="checkbox"
                       className="w-5 h-5 cursor-pointer"
-                      style={{ accentColor: '#16A34A' }}
+                      style={{ accentColor: '#5C8A70' }}
                       checked={check?.checked ?? false}
                       onChange={e => handleMonthlyCheck(k.id, e.target.checked)}
                     />
@@ -315,7 +315,7 @@ export function KasanPage() {
                 <td className="px-4 py-4 text-right">
                   <button
                     onClick={() => setEditTarget(k)}
-                    className="text-sm px-4 py-2 rounded-xl border-2 border-gray-200 text-gray-700 font-semibold hover:border-purple-300 hover:text-purple-700 transition-colors"
+                    className="text-sm px-4 py-2 rounded-xl border-2 border-gray-200 text-gray-700 font-semibold hover:border-[#5C8A70] hover:text-[#5C8A70] transition-colors"
                   >編集</button>
                 </td>
               </tr>
@@ -407,7 +407,7 @@ export function KasanPage() {
                         <td className="px-4 py-3.5 text-xs text-gray-500">{r.doneAt}</td>
                         <td className="px-4 py-3.5 text-xs text-gray-600 max-w-[200px] truncate">{r.doneContent || '—'}</td>
                         <td className="px-4 py-3.5 text-right">
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 border border-green-200 font-semibold whitespace-nowrap">算定済み</span>
+                          <span className="text-xs px-2 py-0.5 rounded-full font-semibold whitespace-nowrap text-white" style={{ backgroundColor: '#5C8A70' }}>算定済み</span>
                         </td>
                       </tr>
                     )

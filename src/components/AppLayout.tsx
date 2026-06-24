@@ -1,10 +1,16 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Home, Building2, Settings, Search, FileText, ChevronDown, Users } from 'lucide-react'
+import {
+  Home, Building2, Settings, Search, FileText,
+  ChevronDown, ChevronUp, Users,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { users } from '@/data/mockData'
 
-const BRAND = '#3C3489'
+const BRAND        = '#5C8A70'
+const SIDEBAR_BG   = '#2D3A33'
+const SIDEBAR_TEXT = '#E8F0EC'
+const BORDER       = '#DDE5E0'
 
 interface AppLayoutProps {
   children: React.ReactNode
@@ -13,156 +19,212 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
   const location = useLocation()
   const navigate = useNavigate()
-  const [search, setSearch] = useState('')
-  const [viewMode, setViewMode] = useState<'tantosha' | 'zentai'>('tantosha')
+  const [search, setSearch]               = useState('')
+  const [viewMode, setViewMode]           = useState<'tantosha' | 'zentai'>('tantosha')
+  const [alertCollapsed, setAlertCollapsed] = useState(false)
 
-  const alertUsers = users.filter(u => u.status === 'expired' || u.status === 'warning')
+  const alertUsers    = users.filter(u => u.status === 'expired' || u.status === 'warning')
   const filteredUsers = search
     ? users.filter(u => u.name.includes(search) || u.kana.includes(search))
     : []
 
+  function isActive(path: string, exact = false) {
+    return exact ? location.pathname === path : location.pathname.startsWith(path)
+  }
+
+  function linkStyle(path: string, exact = false) {
+    const active = isActive(path, exact)
+    return {
+      className: cn(
+        'flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition-all mb-0.5 border-l-4',
+        active ? '' : 'hover:bg-white/10'
+      ),
+      style: {
+        color: SIDEBAR_TEXT,
+        borderLeftColor: active ? BRAND : 'transparent',
+        backgroundColor: active ? 'rgba(92,138,112,0.2)' : undefined,
+      } as React.CSSProperties,
+    }
+  }
+
   return (
-    <div className="flex flex-col h-screen" style={{ backgroundColor: '#F4F5F9' }}>
-      {/* Header */}
-      <header className="flex items-center justify-between px-5 py-3 bg-white border-b border-gray-200 flex-shrink-0 z-10">
+    <div className="flex flex-col h-screen" style={{ backgroundColor: '#F7F6F3' }}>
+
+      {/* ── Header ── */}
+      <header
+        className="flex items-center justify-between px-5 py-3 bg-white flex-shrink-0 z-10"
+        style={{ borderBottom: `1px solid ${BORDER}` }}
+      >
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: BRAND }}>
-            <FileText size={17} className="text-white" />
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: BRAND }}>
+            <FileText size={15} className="text-white" />
           </div>
-          <span className="font-bold text-base text-gray-900 tracking-tight">PAPER for ケアマネ</span>
+          <span className="font-semibold text-sm tracking-tight" style={{ color: BRAND }}>PAPER for ケアマネ</span>
         </div>
 
-        <div className="flex items-center gap-4">
-          <span className="text-base text-gray-600 font-medium">さくら居宅介護支援事業所</span>
-          <div className="flex rounded-xl overflow-hidden border border-gray-200">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium hidden sm:block" style={{ color: '#6B7C74' }}>さくら居宅介護支援事業所</span>
+
+          <div className="flex rounded-lg overflow-hidden border" style={{ borderColor: BORDER }}>
             <button
               onClick={() => setViewMode('tantosha')}
-              className={cn('px-4 py-2 text-base font-semibold transition-colors',
-                viewMode === 'tantosha' ? 'text-white' : 'text-gray-600 hover:bg-gray-50')}
-              style={viewMode === 'tantosha' ? { backgroundColor: BRAND } : {}}
+              className="px-3 py-1.5 text-sm font-semibold transition-colors"
+              style={viewMode === 'tantosha'
+                ? { backgroundColor: BRAND, color: 'white' }
+                : { color: '#6B7C74' }}
             >担当</button>
             <button
               onClick={() => setViewMode('zentai')}
-              className={cn('px-4 py-2 text-base font-semibold transition-colors',
-                viewMode === 'zentai' ? 'text-white' : 'text-gray-600 hover:bg-gray-50')}
-              style={viewMode === 'zentai' ? { backgroundColor: BRAND } : {}}
+              className="px-3 py-1.5 text-sm font-semibold transition-colors"
+              style={viewMode === 'zentai'
+                ? { backgroundColor: BRAND, color: 'white' }
+                : { color: '#6B7C74' }}
             >全体</button>
           </div>
+
           <div className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
-            <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center text-base font-bold text-gray-700">石</div>
-            <span className="text-base text-gray-800 font-semibold">石橋 圭介</span>
-            <ChevronDown size={14} className="text-gray-500" />
+            <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold"
+              style={{ backgroundColor: '#EAF3EE', color: BRAND }}>石</div>
+            <span className="text-sm font-semibold hidden sm:block" style={{ color: '#2D3A33' }}>石橋 圭介</span>
+            <ChevronDown size={13} style={{ color: '#6B7C74' }} />
           </div>
         </div>
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
-        <aside className="w-68 bg-white border-r border-gray-200 flex flex-col flex-shrink-0 overflow-y-auto" style={{ width: '272px' }}>
-          <nav className="p-3 pb-1">
-            <Link
-              to="/"
-              className={cn(
-                'flex items-center gap-3 px-4 py-3.5 rounded-xl text-base font-bold transition-colors',
-                location.pathname === '/'
-                  ? 'text-white'
-                  : 'text-gray-700 hover:bg-gray-50'
-              )}
-              style={location.pathname === '/' ? { backgroundColor: BRAND } : {}}
-            >
-              <Home size={18} />
-              ホーム
-            </Link>
-          </nav>
 
-          {/* Alert users */}
-          <div className="px-3 pt-3 pb-2">
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider px-3 mb-2">要対応の利用者</p>
-            {alertUsers.map(u => (
-              <Link
-                key={u.id}
-                to={`/users/${u.id}`}
-                className={cn(
-                  'flex items-center gap-3 px-3 py-3 rounded-xl transition-colors hover:bg-gray-50',
-                  location.pathname === `/users/${u.id}` ? 'bg-purple-50' : ''
-                )}
-              >
-                <span className={cn('w-2.5 h-2.5 rounded-full flex-shrink-0',
-                  u.status === 'expired' ? 'bg-red-500' : 'bg-yellow-400')} />
-                <span className="flex-1 font-bold text-gray-900 text-base">{u.name}</span>
-                <span className={cn(
-                  'text-xs font-bold px-2 py-0.5 rounded-full',
-                  u.status === 'expired'
-                    ? 'bg-red-100 text-red-700 border border-red-200'
-                    : 'bg-yellow-100 text-yellow-700 border border-yellow-200'
-                )}>
-                  {u.status === 'expired' ? '認定切れ' : '期限間近'}
-                </span>
-              </Link>
-            ))}
+        {/* ── Sidebar ── (hidden on mobile, icon-only on md, full on xl) */}
+        <aside
+          className="hidden md:flex flex-col flex-shrink-0 overflow-y-auto md:w-[60px] xl:w-[200px]"
+          style={{ backgroundColor: SIDEBAR_BG }}
+        >
+
+          {/* 要対応の利用者 */}
+          <div className="px-2 pt-4 pb-2">
+            <button
+              className="flex items-center justify-between w-full px-2 py-1.5 mb-1 rounded-lg transition-opacity hover:opacity-70"
+              style={{ color: SIDEBAR_TEXT, opacity: 0.55 }}
+              onClick={() => setAlertCollapsed(!alertCollapsed)}
+            >
+              <span className="text-xs font-bold uppercase tracking-wider hidden xl:block">要対応の利用者</span>
+              <Users size={14} className="xl:hidden mx-auto" />
+              {alertCollapsed
+                ? <ChevronDown size={11} className="hidden xl:block" />
+                : <ChevronUp size={11} className="hidden xl:block" />}
+            </button>
+
+            {!alertCollapsed && alertUsers.map(u => {
+              const l = linkStyle(`/users/${u.id}`, true)
+              return (
+                <Link key={u.id} to={`/users/${u.id}`} className={l.className} style={l.style}>
+                  <span className={cn('w-2 h-2 rounded-full flex-shrink-0',
+                    u.status === 'expired' ? 'bg-red-400' : 'bg-yellow-400')} />
+                  <span className="hidden xl:block flex-1 font-semibold text-sm truncate">{u.name}</span>
+                  <span className={cn(
+                    'text-xs font-bold px-1.5 py-0.5 rounded-full hidden xl:block whitespace-nowrap',
+                    u.status === 'expired'
+                      ? 'bg-red-500/25 text-red-300'
+                      : 'bg-yellow-500/25 text-yellow-300'
+                  )}>
+                    {u.status === 'expired' ? '認定切れ' : '期限間近'}
+                  </span>
+                </Link>
+              )
+            })}
           </div>
 
           {/* Search */}
-          <div className="px-3 py-3 border-t border-gray-100">
-            <div className="relative">
-              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+          <div className="px-2 py-3 border-t border-white/10">
+            <div className="relative hidden xl:block">
+              <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2"
+                style={{ color: SIDEBAR_TEXT, opacity: 0.5 }} />
               <input
                 type="text"
                 placeholder="利用者を探す"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full pl-9 pr-3 py-2.5 text-base border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-200 focus:bg-white transition-colors"
+                className="w-full pl-8 pr-3 py-2 text-sm rounded-xl bg-white/10 border border-white/10 focus:outline-none focus:bg-white/15 transition-colors"
+                style={{ color: SIDEBAR_TEXT }}
               />
             </div>
+            <button className="xl:hidden flex justify-center w-full py-2 hover:bg-white/10 rounded-xl transition-colors"
+              style={{ color: SIDEBAR_TEXT, opacity: 0.6 }}>
+              <Search size={16} />
+            </button>
+
             {search && filteredUsers.length > 0 && (
-              <div className="mt-1 bg-white border border-gray-200 rounded-xl shadow-md overflow-hidden">
+              <div className="mt-1 bg-white rounded-xl shadow-md overflow-hidden absolute z-20 w-44">
                 {filteredUsers.map(u => (
-                  <Link
-                    key={u.id}
-                    to={`/users/${u.id}`}
-                    onClick={() => setSearch('')}
-                    className="block px-4 py-3 text-base hover:bg-gray-50 border-b border-gray-50 last:border-0 font-medium text-gray-800"
+                  <Link key={u.id} to={`/users/${u.id}`} onClick={() => setSearch('')}
+                    className="block px-4 py-3 text-sm hover:bg-gray-50 border-b border-gray-50 last:border-0 font-medium text-gray-800"
                   >{u.name}</Link>
                 ))}
               </div>
             )}
+
             <button
               onClick={() => navigate('/users')}
-              className="mt-2 w-full text-base py-2.5 rounded-xl text-gray-700 font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 border border-gray-200"
+              className="mt-2 w-full text-xs py-2 rounded-xl font-semibold hover:bg-white/10 transition-colors border border-white/10 hidden xl:flex items-center justify-center gap-1.5"
+              style={{ color: SIDEBAR_TEXT }}
             >
-              <Users size={15} />
-              全利用者一覧
+              <Users size={13} />全利用者一覧
             </button>
           </div>
 
-          {/* Bottom nav */}
-          <div className="mt-auto border-t border-gray-100 p-3 space-y-1">
-            <Link
-              to="/admin"
-              className={cn(
-                'flex items-center gap-3 px-4 py-3.5 rounded-xl text-base font-semibold text-gray-700 hover:bg-gray-50 transition-colors',
-                location.pathname === '/admin' ? 'bg-gray-50 font-bold' : ''
-              )}
-            >
-              <Building2 size={18} />事業所
-            </Link>
-            <Link
-              to="/settings"
-              className={cn(
-                'flex items-center gap-3 px-4 py-3.5 rounded-xl text-base font-semibold text-gray-700 hover:bg-gray-50 transition-colors',
-                location.pathname.startsWith('/settings') ? 'bg-gray-50 font-bold' : ''
-              )}
-            >
-              <Settings size={18} />設定
-            </Link>
+          {/* Bottom nav items */}
+          <div className="mt-auto border-t border-white/10 p-2 space-y-0.5">
+            {(() => {
+              const homeL = linkStyle('/', true)
+              return (
+                <Link to="/" className={homeL.className} style={homeL.style}>
+                  <Home size={17} className="flex-shrink-0" />
+                  <span className="hidden xl:block">ホーム</span>
+                </Link>
+              )
+            })()}
+            {(() => {
+              const adminL = linkStyle('/admin', true)
+              return (
+                <Link to="/admin" className={adminL.className} style={adminL.style}>
+                  <Building2 size={17} className="flex-shrink-0" />
+                  <span className="hidden xl:block">事業所</span>
+                </Link>
+              )
+            })()}
+            {(() => {
+              const settingsL = linkStyle('/settings')
+              return (
+                <Link to="/settings" className={settingsL.className} style={settingsL.style}>
+                  <Settings size={17} className="flex-shrink-0" />
+                  <span className="hidden xl:block">設定</span>
+                </Link>
+              )
+            })()}
           </div>
         </aside>
 
-        {/* Main */}
-        <main className="flex-1 overflow-y-auto">
+        {/* ── Main content ── */}
+        <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
           {children}
         </main>
       </div>
+
+      {/* ── Mobile bottom nav ── */}
+      <nav className="md:hidden flex items-center justify-around bg-white flex-shrink-0 fixed bottom-0 left-0 right-0 z-20"
+        style={{ borderTop: `1px solid ${BORDER}`, paddingBottom: 'env(safe-area-inset-bottom, 8px)', paddingTop: '8px' }}>
+        <Link to="/" className="flex flex-col items-center gap-0.5 px-5 py-1">
+          <Home size={20} style={{ color: location.pathname === '/' ? BRAND : '#6B7C74' }} />
+          <span className="text-xs font-medium" style={{ color: location.pathname === '/' ? BRAND : '#6B7C74' }}>ホーム</span>
+        </Link>
+        <Link to="/users" className="flex flex-col items-center gap-0.5 px-5 py-1">
+          <Users size={20} style={{ color: location.pathname.startsWith('/users') ? BRAND : '#6B7C74' }} />
+          <span className="text-xs font-medium" style={{ color: location.pathname.startsWith('/users') ? BRAND : '#6B7C74' }}>利用者</span>
+        </Link>
+        <Link to="/settings" className="flex flex-col items-center gap-0.5 px-5 py-1">
+          <Settings size={20} style={{ color: location.pathname.startsWith('/settings') ? BRAND : '#6B7C74' }} />
+          <span className="text-xs font-medium" style={{ color: location.pathname.startsWith('/settings') ? BRAND : '#6B7C74' }}>設定</span>
+        </Link>
+      </nav>
     </div>
   )
 }
