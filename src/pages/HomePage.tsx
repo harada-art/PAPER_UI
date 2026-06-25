@@ -86,6 +86,56 @@ function KasanResolveModal({ task, onResolve, onClose }: { task: KasanTask; onRe
   )
 }
 
+// ── Schedule modal ────────────────────────────────────────────────────────
+function ScheduleModal({ onClose }: { onClose: () => void }) {
+  const monitoringSchedule = [
+    { date: '2026年6月10日', user: '石橋 孝明' },
+    { date: '2026年6月12日', user: '木梨 憲武' },
+    { date: '2026年6月15日', user: '濱田 正敏' },
+    { date: '2026年6月18日', user: '原田 和将' },
+    { date: '2026年6月22日', user: '上田 洋一' },
+  ]
+  const kaigiSchedule = [
+    { date: '2026年6月20日', user: '石橋 孝明' },
+    { date: '2026年6月25日', user: '木梨 憲武' },
+  ]
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: BORDER }}>
+          <h3 className="font-semibold" style={{ color: TEXT }}>📅 今月のスケジュール</h3>
+          <button onClick={onClose} style={{ color: TEXT_SUB }}><X size={18} /></button>
+        </div>
+        <div className="px-6 py-5 space-y-5 max-h-[60vh] overflow-y-auto">
+          <div>
+            <p className="text-xs font-bold mb-2 uppercase tracking-wider" style={{ color: TEXT_SUB }}>モニタリング訪問予定</p>
+            <div className="space-y-1.5">
+              {monitoringSchedule.map(s => (
+                <div key={s.date + s.user} className="flex items-center justify-between text-sm py-2 px-3 rounded-lg" style={{ backgroundColor: BRAND_LIGHT }}>
+                  <span style={{ color: TEXT_SUB }}>{s.date}</span>
+                  <span className="font-semibold" style={{ color: TEXT }}>{s.user}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="text-xs font-bold mb-2 uppercase tracking-wider" style={{ color: TEXT_SUB }}>担当者会議予定</p>
+            <div className="space-y-1.5">
+              {kaigiSchedule.map(s => (
+                <div key={s.date + s.user} className="flex items-center justify-between text-sm py-2 px-3 rounded-lg" style={{ backgroundColor: '#FFFBF0' }}>
+                  <span style={{ color: TEXT_SUB }}>{s.date}</span>
+                  <span className="font-semibold" style={{ color: TEXT }}>{s.user}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Priority badge ─────────────────────────────────────────────────────────
 function PriorityBadge({ priority }: { priority: TaskPriority }) {
   const map = {
@@ -118,6 +168,7 @@ export function HomePage() {
   const navigate = useNavigate()
   const { kasanTasks, resolveKasanTask } = useEvents()
   const [resolveTarget, setResolveTarget] = useState<KasanTask | null>(null)
+  const [showSchedule, setShowSchedule] = useState(false)
   const pendingKasanTasks = kasanTasks.filter(t => t.status === 'pending')
 
   const today = new Date()
@@ -132,9 +183,18 @@ export function HomePage() {
   return (
     <>
     <div className="p-6 max-w-[1200px]">
-      <div className="mb-5">
-        <h1 className="text-xl font-semibold" style={{ color: TEXT }}>ホーム</h1>
-        <p className="text-sm mt-0.5" style={{ color: TEXT_SUB }}>アラートとタスクを確認して、次の対応を進めましょう。</p>
+      <div className="flex items-center justify-between mb-5">
+        <div>
+          <h1 className="text-xl font-semibold" style={{ color: TEXT }}>ホーム</h1>
+          <p className="text-sm mt-0.5" style={{ color: TEXT_SUB }}>アラートとタスクを確認して、次の対応を進めましょう。</p>
+        </div>
+        <button
+          onClick={() => setShowSchedule(true)}
+          className="flex items-center gap-2 text-sm px-4 py-2.5 rounded-lg font-semibold border hover:opacity-85 transition-opacity"
+          style={{ backgroundColor: BRAND_LIGHT, color: BRAND, borderColor: '#A3DDB7' }}
+        >
+          📅 スケジュール
+        </button>
       </div>
 
       {/* ── 今日の状況バー ── */}
@@ -338,6 +398,7 @@ export function HomePage() {
         onClose={() => setResolveTarget(null)}
       />
     )}
+    {showSchedule && <ScheduleModal onClose={() => setShowSchedule(false)} />}
     </>
   )
 }

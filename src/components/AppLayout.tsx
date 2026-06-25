@@ -8,8 +8,8 @@ import { cn } from '@/lib/utils'
 import { users } from '@/data/mockData'
 
 const BRAND        = '#2ECC71'
-const SIDEBAR_BG   = '#2D3A33'
-const SIDEBAR_TEXT = '#E8F0EC'
+const SIDEBAR_BG   = '#E8F5E9'
+const SIDEBAR_TEXT = '#2D3A33'
 const BORDER       = '#DDE5E0'
 
 interface AppLayoutProps {
@@ -36,13 +36,12 @@ export function AppLayout({ children }: AppLayoutProps) {
     const active = isActive(path, exact)
     return {
       className: cn(
-        'flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition-all mb-0.5 border-l-4',
-        active ? '' : 'hover:bg-white/10'
+        'flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition-all mb-0.5',
+        active ? '' : 'hover:bg-black/5'
       ),
       style: {
-        color: SIDEBAR_TEXT,
-        borderLeftColor: active ? BRAND : 'transparent',
-        backgroundColor: active ? 'rgba(92,138,112,0.2)' : undefined,
+        color: active ? '#FFFFFF' : SIDEBAR_TEXT,
+        backgroundColor: active ? BRAND : undefined,
       } as React.CSSProperties,
     }
   }
@@ -84,7 +83,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 
           <div className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
             <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold"
-              style={{ backgroundColor: '#EAF3EE', color: BRAND }}>石</div>
+              style={{ backgroundColor: '#E8FAF0', color: BRAND }}>石</div>
             <span className="text-sm font-semibold hidden sm:block" style={{ color: '#2D3A33' }}>石橋 圭介</span>
             <ChevronDown size={13} style={{ color: '#6B7C74' }} />
           </div>
@@ -96,18 +95,18 @@ export function AppLayout({ children }: AppLayoutProps) {
         {/* ── Sidebar ── (hidden on mobile, icon-only on md, full on xl) */}
         <aside
           className="hidden md:flex flex-col flex-shrink-0 overflow-y-auto md:w-[60px] xl:w-[200px]"
-          style={{ backgroundColor: SIDEBAR_BG }}
+          style={{ backgroundColor: SIDEBAR_BG, borderRight: '1px solid #C8E6C9' }}
         >
 
           {/* 要対応の利用者 */}
           <div className="px-2 pt-4 pb-2">
             <button
               className="flex items-center justify-between w-full px-2 py-1.5 mb-1 rounded-lg transition-opacity hover:opacity-70"
-              style={{ color: SIDEBAR_TEXT, opacity: 0.55 }}
+              style={{ color: SIDEBAR_TEXT, opacity: 0.65 }}
               onClick={() => setAlertCollapsed(!alertCollapsed)}
             >
               <span className="text-xs font-bold uppercase tracking-wider hidden xl:block">要対応の利用者</span>
-              <Users size={14} className="xl:hidden mx-auto" />
+              <Users size={14} className="xl:hidden mx-auto" style={{ color: SIDEBAR_TEXT }} />
               {alertCollapsed
                 ? <ChevronDown size={11} className="hidden xl:block" />
                 : <ChevronUp size={11} className="hidden xl:block" />}
@@ -118,13 +117,13 @@ export function AppLayout({ children }: AppLayoutProps) {
               return (
                 <Link key={u.id} to={`/users/${u.id}`} className={l.className} style={l.style}>
                   <span className={cn('w-2 h-2 rounded-full flex-shrink-0',
-                    u.status === 'expired' ? 'bg-red-400' : 'bg-yellow-400')} />
+                    u.status === 'expired' ? 'bg-red-500' : 'bg-yellow-500')} />
                   <span className="hidden xl:block flex-1 font-semibold text-sm truncate">{u.name}</span>
                   <span className={cn(
                     'text-xs font-bold px-1.5 py-0.5 rounded-full hidden xl:block whitespace-nowrap',
                     u.status === 'expired'
-                      ? 'bg-red-500/25 text-red-300'
-                      : 'bg-yellow-500/25 text-yellow-300'
+                      ? 'bg-red-100 text-red-600'
+                      : 'bg-yellow-100 text-yellow-700'
                   )}>
                     {u.status === 'expired' ? '認定切れ' : '期限間近'}
                   </span>
@@ -134,7 +133,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           </div>
 
           {/* Search */}
-          <div className="px-2 py-3 border-t border-white/10">
+          <div className="px-2 py-3 border-t" style={{ borderColor: '#C8E6C9' }}>
             <div className="relative hidden xl:block">
               <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2"
                 style={{ color: SIDEBAR_TEXT, opacity: 0.5 }} />
@@ -143,12 +142,12 @@ export function AppLayout({ children }: AppLayoutProps) {
                 placeholder="利用者を探す"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full pl-8 pr-3 py-2 text-sm rounded-xl bg-white/10 border border-white/10 focus:outline-none focus:bg-white/15 transition-colors"
-                style={{ color: SIDEBAR_TEXT }}
+                className="w-full pl-8 pr-3 py-2 text-sm rounded-xl border focus:outline-none focus:bg-white transition-colors"
+                style={{ color: SIDEBAR_TEXT, backgroundColor: 'rgba(0,0,0,0.04)', borderColor: '#C8E6C9' }}
               />
             </div>
-            <button className="xl:hidden flex justify-center w-full py-2 hover:bg-white/10 rounded-xl transition-colors"
-              style={{ color: SIDEBAR_TEXT, opacity: 0.6 }}>
+            <button className="xl:hidden flex justify-center w-full py-2 hover:bg-black/5 rounded-xl transition-colors"
+              style={{ color: SIDEBAR_TEXT, opacity: 0.7 }}>
               <Search size={16} />
             </button>
 
@@ -164,15 +163,15 @@ export function AppLayout({ children }: AppLayoutProps) {
 
             <button
               onClick={() => navigate('/users')}
-              className="mt-2 w-full text-xs py-2 rounded-xl font-semibold hover:bg-white/10 transition-colors border border-white/10 hidden xl:flex items-center justify-center gap-1.5"
-              style={{ color: SIDEBAR_TEXT }}
+              className="mt-2 w-full text-xs py-2 rounded-xl font-semibold hover:bg-black/5 transition-colors border hidden xl:flex items-center justify-center gap-1.5"
+              style={{ color: SIDEBAR_TEXT, borderColor: '#C8E6C9' }}
             >
               <Users size={13} />全利用者一覧
             </button>
           </div>
 
           {/* Bottom nav items */}
-          <div className="mt-auto border-t border-white/10 p-2 space-y-0.5">
+          <div className="mt-auto border-t p-2 space-y-0.5" style={{ borderColor: '#C8E6C9' }}>
             {(() => {
               const homeL = linkStyle('/', true)
               return (

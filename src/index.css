@@ -12,8 +12,10 @@
   --color-alert-red:     #D94F4F;
   --color-alert-yellow:  #E8A838;
   --color-alert-green:   #2ECC71;
-  --color-sidebar-bg:    #2D3A33;
-  --color-sidebar-text:  #E8F0EC;
+  --color-sidebar-bg:          #E8F5E9;
+  --color-sidebar-text:        #2D3A33;
+  --color-sidebar-active:      #2ECC71;
+  --color-sidebar-active-text: #FFFFFF;
   --color-saved:         #2ECC71;
   --color-unsaved-bg:    #F0F0F0;
 }

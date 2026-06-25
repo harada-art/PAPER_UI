@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import {
-  ChevronLeft, ChevronRight, FileText, Building2,
+  ChevronLeft, ChevronRight, ChevronDown, ChevronUp, FileText, Building2,
   X, CheckCircle, Zap, Clock, Mic,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -17,12 +17,31 @@ const ALERT_RED    = '#D94F4F'
 const ALERT_YELLOW = '#E8A838'
 const UNSAVED_BG   = '#F0F0F0'
 
+const MANAGER_HISTORY: Record<string, Array<{ period: string; manager: string }>> = {
+  '1': [
+    { period: '2023年2月〜2024年3月', manager: '田中 美咲' },
+    { period: '2024年4月〜現在',      manager: '石橋 圭介' },
+  ],
+  '2': [
+    { period: '2024年1月〜現在', manager: '石橋 圭介' },
+  ],
+  '3': [
+    { period: '2023年1月〜2023年12月', manager: '田中 美咲' },
+    { period: '2024年1月〜現在',       manager: '石橋 圭介' },
+  ],
+  '4': [
+    { period: '2023年1月〜現在', manager: '石橋 圭介' },
+  ],
+  '5': [
+    { period: '2026年4月〜現在', manager: '石橋 圭介' },
+  ],
+}
+
 function formatCarePlanDate(dateStr: string): string {
   const [year, month] = dateStr.split('-')
   return `${year}年${parseInt(month)}月`
 }
 
-// ── Helpers ────────────────────────────────────────────────────────────────
 function RegBtn({ onClick }: { onClick?: () => void }) {
   return (
     <button onClick={onClick}
@@ -40,9 +59,9 @@ function ConfBtn({ onClick }: { onClick?: () => void }) {
 
 function CertBadge({ certStart, certEnd }: { certStart: string; certEnd: string }) {
   const start = new Date(certStart)
-  const end = new Date(certEnd)
+  const end   = new Date(certEnd)
   const today = new Date(); today.setHours(0,0,0,0); end.setHours(0,0,0,0)
-  const diff = Math.floor((today.getTime() - end.getTime()) / (1000*60*60*24))
+  const diff  = Math.floor((today.getTime() - end.getTime()) / (1000*60*60*24))
   function fmtDate(d: Date) {
     return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`
   }
@@ -174,7 +193,6 @@ function ConsistencyRow({ documentName, userId }: { documentName: string; userId
 function AllDocumentsTab() {
   return (
     <div className="p-6 space-y-5">
-      {/* 介護保険証 */}
       <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER }}>
         <div className="flex items-center justify-between px-5 py-3.5 border-b" style={{ borderColor: '#F0F4F2' }}>
           <div className="flex items-center gap-2">
@@ -205,7 +223,6 @@ function AllDocumentsTab() {
         </div>
       </div>
 
-      {/* 通所介護計画書 */}
       <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER }}>
         <div className="flex items-center justify-between px-5 py-3.5 border-b" style={{ borderColor: '#F0F4F2' }}>
           <div className="flex items-center gap-2">
@@ -239,7 +256,6 @@ function AllDocumentsTab() {
         </div>
       </div>
 
-      {/* 個別機能訓練計画書 */}
       <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER }}>
         <div className="flex items-center justify-between px-5 py-3.5 border-b" style={{ borderColor: '#F0F4F2' }}>
           <div className="flex items-center gap-2">
@@ -272,7 +288,6 @@ function AllDocumentsTab() {
         </div>
       </div>
 
-      {/* アセスメントシート */}
       <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER }}>
         <div className="flex items-center justify-between px-5 py-3.5 border-b" style={{ borderColor: '#F0F4F2' }}>
           <div className="flex items-center gap-2">
@@ -309,18 +324,29 @@ function AllDocumentsTab() {
 }
 
 // ── File upload modal ─────────────────────────────────────────────────────
-interface UploadModalProps { docName: string; onUpload: (file: File) => void; onClose: () => void }
-function UploadModal({ docName, onUpload, onClose }: UploadModalProps) {
-  const [file, setFile]           = useState<File | null>(null)
+type SaveMode = 'file' | 'notNeeded' | 'notReceived'
+interface UploadModalProps { docName: string; onComplete: () => void; onClose: () => void }
+function UploadModal({ docName, onComplete, onClose }: UploadModalProps) {
+  const [file, setFile]         = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
-  const [done, setDone]           = useState(false)
+  const [done, setDone]         = useState(false)
+  const [saveMode, setSaveMode] = useState<SaveMode>('file')
 
-  function handleUpload() {
+  function handleSave() {
+    if (saveMode === 'notNeeded' || saveMode === 'notReceived') {
+      setDone(true)
+      return
+    }
     if (!file) return
     setUploading(true)
     setTimeout(() => { setUploading(false); setDone(true) }, 1200)
   }
-  function handleComplete() { onUpload(file!); onClose() }
+
+  function handleClose() { onComplete(); onClose() }
+
+  const doneLabel = saveMode === 'notNeeded'   ? '必要なしとして登録しました'
+                  : saveMode === 'notReceived' ? '未受け取りとして登録しました'
+                  : '受取済として登録されました'
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={onClose}>
@@ -329,38 +355,80 @@ function UploadModal({ docName, onUpload, onClose }: UploadModalProps) {
           <h3 className="font-semibold text-sm" style={{ color: TEXT }}>{docName}</h3>
           <button onClick={onClose} style={{ color: TEXT_SUB }}><X size={16} /></button>
         </div>
+
         {!done ? (
           <>
-            <label className="block w-full cursor-pointer">
-              <div className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors ${file ? '' : 'hover:border-[#2ECC71]'}`}
-                style={{ borderColor: file ? BRAND : BORDER, backgroundColor: file ? BRAND_LIGHT : undefined }}>
-                {file
-                  ? <><p className="text-sm font-medium" style={{ color: TEXT }}>{file.name}</p><p className="text-xs mt-1" style={{ color: TEXT_SUB }}>{(file.size / 1024).toFixed(0)} KB</p></>
-                  : <><FileText size={28} className="mx-auto mb-2" style={{ color: BORDER }} /><p className="text-sm" style={{ color: TEXT_SUB }}>PDF または画像ファイルを選択</p><p className="text-xs mt-1" style={{ color: BORDER }}>クリックして選択、またはドラッグ&amp;ドロップ</p></>
-                }
+            {/* Mode selector */}
+            <div className="flex gap-2 mb-4">
+              {([
+                { mode: 'file'        as SaveMode, label: 'ファイル登録' },
+                { mode: 'notNeeded'   as SaveMode, label: '必要なし' },
+                { mode: 'notReceived' as SaveMode, label: '未受け取り' },
+              ] as const).map(opt => (
+                <button key={opt.mode}
+                  onClick={() => setSaveMode(opt.mode)}
+                  className="flex-1 py-1.5 text-xs font-semibold rounded-lg border transition-all"
+                  style={saveMode === opt.mode
+                    ? { backgroundColor: BRAND, color: 'white', borderColor: BRAND }
+                    : { backgroundColor: 'white', color: TEXT_SUB, borderColor: BORDER }}>
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
+            {saveMode === 'file' && (
+              <label className="block w-full cursor-pointer">
+                <div className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors ${file ? '' : 'hover:border-[#2ECC71]'}`}
+                  style={{ borderColor: file ? BRAND : BORDER, backgroundColor: file ? BRAND_LIGHT : undefined }}>
+                  {file
+                    ? <><p className="text-sm font-medium" style={{ color: TEXT }}>{file.name}</p><p className="text-xs mt-1" style={{ color: TEXT_SUB }}>{(file.size / 1024).toFixed(0)} KB</p></>
+                    : <><FileText size={28} className="mx-auto mb-2" style={{ color: BORDER }} /><p className="text-sm" style={{ color: TEXT_SUB }}>PDF または画像ファイルを選択</p><p className="text-xs mt-1" style={{ color: BORDER }}>クリックして選択</p></>
+                  }
+                </div>
+                <input type="file" accept=".pdf,image/*" className="hidden" onChange={e => setFile(e.target.files?.[0] ?? null)} />
+              </label>
+            )}
+
+            {saveMode === 'notNeeded' && (
+              <div className="py-4 px-3 rounded-xl border text-sm" style={{ borderColor: BRAND, backgroundColor: BRAND_LIGHT }}>
+                <p className="font-semibold mb-1" style={{ color: BRAND }}>✓ 必要なしとして登録</p>
+                <p className="text-xs" style={{ color: TEXT_SUB }}>サイン不要地域など、この書類が不要な場合に使用します。保存済み扱いとして登録されます。</p>
               </div>
-              <input type="file" accept=".pdf,image/*" className="hidden" onChange={e => setFile(e.target.files?.[0] ?? null)} />
-            </label>
+            )}
+
+            {saveMode === 'notReceived' && (
+              <div className="py-4 px-3 rounded-xl border text-sm" style={{ borderColor: ALERT_YELLOW, backgroundColor: '#FFFBF0' }}>
+                <p className="font-semibold mb-1" style={{ color: ALERT_YELLOW }}>⏳ 未受け取りとして登録</p>
+                <p className="text-xs" style={{ color: TEXT_SUB }}>事業所から書類がまだ届いていない状態として登録します。</p>
+              </div>
+            )}
+
             <div className="flex gap-3 mt-4">
-              <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border text-sm font-semibold hover:bg-gray-50"
+              <button onClick={onClose}
+                className="flex-1 py-2.5 rounded-xl border text-sm font-semibold hover:bg-gray-50"
                 style={{ borderColor: BORDER, color: TEXT_SUB }}>キャンセル</button>
-              <button onClick={handleUpload} disabled={!file || uploading}
-                className="flex-1 py-2.5 rounded-xl text-white text-sm font-semibold disabled:opacity-40 transition-opacity"
-                style={{ backgroundColor: BRAND }}>
-                {uploading ? 'アップロード中...' : 'アップロード'}
+              <button onClick={handleSave}
+                disabled={saveMode === 'file' && (!file || uploading)}
+                className="flex-1 py-2.5 rounded-xl text-white text-sm font-semibold disabled:opacity-40 transition-opacity hover:opacity-85"
+                style={{ backgroundColor: saveMode === 'notReceived' ? ALERT_YELLOW : BRAND }}>
+                {uploading ? 'アップロード中...'
+                  : saveMode === 'notNeeded'   ? '必要なしとして登録'
+                  : saveMode === 'notReceived' ? '未受け取りとして登録'
+                  : 'アップロード'}
               </button>
             </div>
           </>
         ) : (
           <>
             <div className="text-center py-4">
-              <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3" style={{ backgroundColor: BRAND_LIGHT }}>
-                <CheckCircle size={24} style={{ color: BRAND }} />
+              <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3"
+                style={{ backgroundColor: saveMode === 'notReceived' ? '#FFFBF0' : BRAND_LIGHT }}>
+                <CheckCircle size={24} style={{ color: saveMode === 'notReceived' ? ALERT_YELLOW : BRAND }} />
               </div>
-              <p className="font-semibold" style={{ color: TEXT }}>アップロード完了</p>
-              <p className="text-xs mt-1" style={{ color: TEXT_SUB }}>「受取済」として登録されました</p>
+              <p className="font-semibold" style={{ color: TEXT }}>登録完了</p>
+              <p className="text-xs mt-1" style={{ color: TEXT_SUB }}>{doneLabel}</p>
             </div>
-            <button onClick={handleComplete}
+            <button onClick={handleClose}
               className="w-full py-2.5 rounded-xl text-white text-sm font-semibold"
               style={{ backgroundColor: BRAND }}>閉じる</button>
           </>
@@ -389,7 +457,7 @@ function JigyoshoDocumentsTab() {
 
   return (
     <>
-      {uploadModal && <UploadModal docName={uploadModal.name} onUpload={() => handleUploaded()} onClose={() => setUploadModal(null)} />}
+      {uploadModal && <UploadModal docName={uploadModal.name} onComplete={handleUploaded} onClose={() => setUploadModal(null)} />}
 
       <div className="p-6 space-y-5">
         <div className="flex items-center gap-3">
@@ -398,7 +466,6 @@ function JigyoshoDocumentsTab() {
           <span className="text-xs" style={{ color: TEXT_SUB }}>※今・直近のみ表示しています</span>
         </div>
 
-        {/* 通所介護施設ツーショ */}
         <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER }}>
           <div className="flex items-center gap-2 px-5 py-3.5 border-b" style={{ borderColor: '#F0F4F2' }}>
             <Building2 size={14} style={{ color: BRAND }} />
@@ -435,7 +502,6 @@ function JigyoshoDocumentsTab() {
           </div>
         </div>
 
-        {/* 訪問看護ヤットデタ */}
         <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER }}>
           <div className="flex items-center gap-2 px-5 py-3.5 border-b" style={{ borderColor: '#F0F4F2' }}>
             <Building2 size={14} style={{ color: BRAND }} />
@@ -461,7 +527,6 @@ function JigyoshoDocumentsTab() {
           </div>
         </div>
 
-        {/* 福祉用具ウラシマ */}
         <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER }}>
           <div className="flex items-center gap-2 px-5 py-3.5 border-b" style={{ borderColor: '#F0F4F2' }}>
             <Building2 size={14} style={{ color: BRAND }} />
@@ -481,20 +546,121 @@ function JigyoshoDocumentsTab() {
   )
 }
 
+// ── 担当者会議タブ ────────────────────────────────────────────────────────
+function KaigiTab() {
+  const [kaigiDate, setKaigiDate] = useState('')
+  const [attendees, setAttendees] = useState('')
+  const [content, setContent]     = useState('')
+  const [nextDate, setNextDate]   = useState('')
+  const [records, setRecords]     = useState<Array<{ date: string; attendees: string; content: string; nextDate: string }>>([])
+
+  function handleSave() {
+    if (!kaigiDate) return
+    setRecords(prev => [{ date: kaigiDate, attendees, content, nextDate }, ...prev])
+    setKaigiDate(''); setAttendees(''); setContent(''); setNextDate('')
+  }
+
+  return (
+    <div className="p-6 space-y-5">
+      <div className="bg-white rounded-xl border p-6" style={{ borderColor: BORDER }}>
+        <h3 className="font-semibold mb-4" style={{ color: TEXT }}>担当者会議を記録</h3>
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-semibold mb-1 block" style={{ color: TEXT_SUB }}>開催日</label>
+              <input type="date"
+                className="w-full text-sm border rounded-lg px-3 py-2 focus:outline-none focus:border-[#2ECC71]"
+                style={{ borderColor: BORDER }}
+                value={kaigiDate} onChange={e => setKaigiDate(e.target.value)} />
+            </div>
+            <div>
+              <label className="text-xs font-semibold mb-1 block" style={{ color: TEXT_SUB }}>出席者</label>
+              <input type="text" placeholder="例）石橋、田中（通所）、家族"
+                className="w-full text-sm border rounded-lg px-3 py-2 focus:outline-none focus:border-[#2ECC71]"
+                style={{ borderColor: BORDER }}
+                value={attendees} onChange={e => setAttendees(e.target.value)} />
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-semibold mb-2 block" style={{ color: TEXT_SUB }}>検討内容</label>
+            <div className="flex items-center gap-3 mb-2">
+              <button
+                onClick={() => console.log('voice kaigi clicked')}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-white text-sm font-semibold hover:opacity-85 transition-opacity"
+                style={{ backgroundColor: BRAND }}
+              >
+                <Mic size={15} />音声で議事録を作成
+              </button>
+              <span className="text-xs" style={{ color: TEXT_SUB }}>または</span>
+            </div>
+            <textarea
+              className="w-full text-sm border rounded-lg px-3 py-2 focus:outline-none focus:border-[#2ECC71] resize-none"
+              style={{ borderColor: BORDER, height: '120px' }}
+              placeholder="会議の内容を入力..."
+              value={content} onChange={e => setContent(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="text-xs font-semibold mb-1 block" style={{ color: TEXT_SUB }}>次回予定</label>
+            <input type="date"
+              className="w-full text-sm border rounded-lg px-3 py-2 focus:outline-none focus:border-[#2ECC71]"
+              style={{ borderColor: BORDER }}
+              value={nextDate} onChange={e => setNextDate(e.target.value)} />
+          </div>
+          <button
+            onClick={handleSave}
+            disabled={!kaigiDate}
+            className="w-full py-2.5 rounded-xl text-white text-sm font-semibold disabled:opacity-40 hover:opacity-85 transition-opacity"
+            style={{ backgroundColor: BRAND }}>
+            記録する
+          </button>
+        </div>
+      </div>
+
+      {records.length > 0 && (
+        <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: BORDER }}>
+          <div className="px-5 py-3.5 border-b" style={{ borderColor: '#F0F4F2' }}>
+            <span className="font-semibold text-sm" style={{ color: TEXT }}>過去の会議記録</span>
+          </div>
+          <div className="divide-y" style={{ borderColor: '#F0F4F2' }}>
+            {records.map((r, i) => (
+              <div key={i} className="px-5 py-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-semibold" style={{ color: TEXT }}>{r.date}</span>
+                  <span className="text-xs px-2.5 py-1 rounded-full font-semibold border" style={{ backgroundColor: BRAND_LIGHT, color: BRAND, borderColor: '#A3DDB7' }}>⊙ 記録済</span>
+                </div>
+                {r.attendees && <p className="text-xs mb-1" style={{ color: TEXT_SUB }}>出席：{r.attendees}</p>}
+                {r.content && <p className="text-xs" style={{ color: TEXT_SUB }}>内容：{r.content}</p>}
+                {r.nextDate && <p className="text-xs mt-1" style={{ color: TEXT_SUB }}>次回予定：{r.nextDate}</p>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── 記録タブ ──────────────────────────────────────────────────────────────
-function RecordsTab() {
+function RecordsTab({ userId }: { userId: string }) {
   const navigate    = useNavigate()
   const [recordSubTab, setRecordSubTab] = useState('monitoring')
   const [visitDates, setVisitDates]     = useState<Record<string, string>>({})
   const [visited, setVisited]           = useState<Record<string, boolean>>({})
   const [hasRecord]                     = useState<Record<string, boolean>>({ '1': true })
 
+  const currentUser  = users.filter(u => u.id === userId)
   const visitedCount = Object.values(visited).filter(Boolean).length
+  const totalCount   = currentUser.length
 
   return (
     <div>
       <div className="flex gap-1 px-6 pt-4 pb-0 border-b bg-white" style={{ borderColor: BORDER }}>
-        {[{ id: 'monitoring', label: 'モニタリング' }, { id: 'schedule', label: 'スケジュール' }].map(t => (
+        {[
+          { id: 'monitoring', label: 'モニタリング' },
+          { id: 'kaigi',      label: '担当者会議' },
+          { id: 'schedule',   label: 'スケジュール' },
+        ].map(t => (
           <button key={t.id} onClick={() => setRecordSubTab(t.id)}
             className="px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors"
             style={recordSubTab === t.id
@@ -509,18 +675,19 @@ function RecordsTab() {
           <div className="flex justify-between items-center mb-4">
             <div>
               <h3 className="font-semibold" style={{ color: TEXT }}>2026年6月のモニタリング</h3>
-              <p className="text-xs mt-0.5" style={{ color: TEXT_SUB }}>完了/全体：{visitedCount}/5　実施率：{Math.round(visitedCount / 5 * 100)}%　予定：5件</p>
+              <p className="text-xs mt-0.5" style={{ color: TEXT_SUB }}>
+                完了/全体：{visitedCount}/{totalCount}　実施率：{totalCount > 0 ? Math.round(visitedCount / totalCount * 100) : 0}%
+              </p>
             </div>
             <button className="text-sm px-4 py-2 rounded-lg text-white font-semibold" style={{ backgroundColor: BRAND }}>
               今月の一括生成
             </button>
           </div>
 
-          {/* 音声入力ボタン */}
           <div className="flex items-center gap-4 mb-4 p-4 rounded-xl" style={{ backgroundColor: BRAND_LIGHT }}>
             <div>
               <button
-                onClick={() => console.log('voice input clicked')}
+                onClick={() => console.log('voice monitoring clicked')}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-white text-sm font-semibold hover:opacity-85 transition-opacity"
                 style={{ backgroundColor: BRAND }}
               >
@@ -544,16 +711,13 @@ function RecordsTab() {
                 </tr>
               </thead>
               <tbody>
-                {users.map(u => {
+                {currentUser.map(u => {
                   const isVisited = visited[u.id] ?? false
                   const recorded  = hasRecord[u.id] ?? false
                   return (
                     <tr key={u.id}
                       className="border-b last:border-0 cursor-pointer transition-colors"
-                      style={{
-                        borderColor: '#F0F4F2',
-                        backgroundColor: isVisited ? undefined : UNSAVED_BG,
-                      }}
+                      style={{ borderColor: '#F0F4F2', backgroundColor: isVisited ? undefined : UNSAVED_BG }}
                       onClick={() => navigate(`/users/${u.id}?maintab=kiroku`)}>
                       <td className="px-5 py-3 font-semibold" style={{ color: TEXT }}>{u.name}</td>
                       <td className="px-5 py-3" style={{ color: TEXT_SUB }}>2026-06</td>
@@ -586,6 +750,9 @@ function RecordsTab() {
           </div>
         </div>
       )}
+
+      {recordSubTab === 'kaigi' && <KaigiTab />}
+
       {recordSubTab === 'schedule' && (
         <div className="p-6">
           <div className="bg-white rounded-xl border p-10 text-center" style={{ borderColor: BORDER }}>
@@ -643,7 +810,16 @@ function MyDocumentsTab() {
             <span className="font-semibold text-sm" style={{ color: TEXT }}>モニタリング報告書</span>
             <span className="text-xs" style={{ color: TEXT_SUB }}>毎月</span>
           </div>
-          <span className="text-xs px-2.5 py-1 rounded-full font-semibold border" style={{ backgroundColor: BRAND_LIGHT, color: BRAND, borderColor: '#A3DDB7' }}>↻ 対応中</span>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => console.log('voice monitoring report clicked')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-xs font-semibold hover:opacity-85 transition-opacity"
+              style={{ backgroundColor: BRAND }}
+            >
+              <Mic size={12} />音声で作成
+            </button>
+            <span className="text-xs px-2.5 py-1 rounded-full font-semibold border" style={{ backgroundColor: BRAND_LIGHT, color: BRAND, borderColor: '#A3DDB7' }}>↻ 対応中</span>
+          </div>
         </div>
         <div className="divide-y" style={{ borderColor: '#F0F4F2' }}>
           {[
@@ -679,7 +855,6 @@ function MyDocumentsTab() {
           <span className="text-xs px-2.5 py-1 rounded-full font-semibold border" style={{ backgroundColor: BRAND_LIGHT, color: BRAND, borderColor: '#A3DDB7' }}>✓ 揃っています</span>
         </div>
 
-        {/* 新規作成フォーム */}
         <div className="p-5 border-b" style={{ borderColor: '#F0F4F2', backgroundColor: '#F7FAF8' }}>
           <p className="text-xs font-semibold mb-3" style={{ color: TEXT_SUB }}>新規作成</p>
           <div className="space-y-3">
@@ -714,7 +889,6 @@ function MyDocumentsTab() {
           </div>
         </div>
 
-        {/* 既存記録 */}
         <div className="divide-y" style={{ borderColor: '#F0F4F2' }}>
           {[
             { period: '2026年1月更新', date: '2026/1/10' },
@@ -738,6 +912,8 @@ function MyDocumentsTab() {
 function OverviewTab({ user }: { user: typeof users[0] }) {
   const navigate = useNavigate()
   const carePlan = carePlans.find(cp => cp.userId === user.id)
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const managerHistory = MANAGER_HISTORY[user.id] ?? []
 
   return (
     <div className="p-6 space-y-5">
@@ -773,6 +949,28 @@ function OverviewTab({ user }: { user: typeof users[0] }) {
                 長期 {formatCarePlanDate(carePlan.longTermStart)}〜{formatCarePlanDate(carePlan.longTermEnd)}
               </span>
             </div>
+            {managerHistory.length > 0 && (
+              <div className="mt-4 pt-3 border-t" style={{ borderColor: BORDER }}>
+                <button
+                  onClick={() => setHistoryOpen(!historyOpen)}
+                  className="flex items-center justify-between w-full"
+                  style={{ color: TEXT_SUB }}
+                >
+                  <span className="text-xs font-semibold">担当者変更履歴</span>
+                  {historyOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                </button>
+                {historyOpen && (
+                  <div className="mt-2 space-y-1.5">
+                    {managerHistory.map(h => (
+                      <div key={h.period} className="flex items-center justify-between text-xs py-1.5 px-3 rounded-lg" style={{ backgroundColor: '#F7FAF8' }}>
+                        <span style={{ color: TEXT_SUB }}>{h.period}</span>
+                        <span className="font-semibold" style={{ color: TEXT }}>{h.manager}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -891,7 +1089,6 @@ export function UserDetailPage() {
 
   return (
     <div className="min-h-full">
-      {/* ── User header ── */}
       <div className="bg-white border-b px-6 pt-5 pb-0" style={{ borderColor: BORDER }}>
         <button
           onClick={() => navigate('/')}
@@ -934,7 +1131,6 @@ export function UserDetailPage() {
           </button>
         </div>
 
-        {/* Main tabs */}
         <div className="flex gap-0">
           {mainTabs.map(t => (
             <button key={t.id} onClick={() => setMainTab(t.id)}
@@ -947,10 +1143,9 @@ export function UserDetailPage() {
         </div>
       </div>
 
-      {/* Tab content */}
       {activeTab === 'overview' && <OverviewTab user={user} />}
       {activeTab === 'shorui'   && <DocumentsTab user={user} />}
-      {activeTab === 'kiroku'   && <RecordsTab />}
+      {activeTab === 'kiroku'   && <RecordsTab userId={user.id} />}
 
       {showEventModal && (
         <EventRecordModal
