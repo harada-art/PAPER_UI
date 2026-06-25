@@ -7,8 +7,8 @@ import {
 import { users, tasks, isThreeSetComplete, type TaskPriority } from '@/data/mockData'
 import { useEvents, type KasanTask, EVENT_TYPE_META } from '@/contexts/EventContext'
 
-const BRAND        = '#5C8A70'
-const BRAND_LIGHT  = '#EAF3EE'
+const BRAND        = '#2ECC71'
+const BRAND_LIGHT  = '#E8FAF0'
 const TEXT         = '#2D3A33'
 const TEXT_SUB     = '#6B7C74'
 const BORDER       = '#DDE5E0'
@@ -57,14 +57,14 @@ function KasanResolveModal({ task, onResolve, onClose }: { task: KasanTask; onRe
           <div>
             <label className="text-xs font-semibold mb-1.5 block" style={{ color: TEXT_SUB }}>対応日</label>
             <input type="date"
-              className="w-full text-sm border rounded-lg px-3 py-2 focus:outline-none focus:border-[#5C8A70]"
+              className="w-full text-sm border rounded-lg px-3 py-2 focus:outline-none focus:border-[#2ECC71]"
               style={{ borderColor: BORDER }}
               value={doneAt} onChange={e => setDoneAt(e.target.value)} />
           </div>
           <div>
             <label className="text-xs font-semibold mb-1.5 block" style={{ color: TEXT_SUB }}>対応内容</label>
             <textarea
-              className="w-full text-sm border rounded-lg px-3 py-2 focus:outline-none focus:border-[#5C8A70] resize-none"
+              className="w-full text-sm border rounded-lg px-3 py-2 focus:outline-none focus:border-[#2ECC71] resize-none"
               style={{ borderColor: BORDER }}
               rows={4} placeholder="例）○○病院の担当者に電話にて情報提供"
               value={content} onChange={e => setContent(e.target.value)} />
@@ -92,7 +92,7 @@ function PriorityBadge({ priority }: { priority: TaskPriority }) {
     urgent:    { Icon: AlertTriangle, label: '緊急',  bg: '#FFF0F0', color: ALERT_RED,    border: '#FBBFBF' },
     thisweek:  { Icon: Clock,         label: '今週中', bg: '#FFFBF0', color: ALERT_YELLOW, border: '#FCD34D' },
     thismonth: { Icon: CalendarDays,  label: '今月中', bg: '#FFFBF0', color: ALERT_YELLOW, border: '#FCD34D' },
-    inprogress:{ Icon: RefreshCw,     label: '対応中', bg: BRAND_LIGHT, color: BRAND,     border: '#B8D8C4' },
+    inprogress:{ Icon: RefreshCw,     label: '対応中', bg: BRAND_LIGHT, color: BRAND,     border: '#A3DDB7' },
   }
   const c = map[priority]
   return (
@@ -108,11 +108,11 @@ function PriorityBadge({ priority }: { priority: TaskPriority }) {
 const statusConfig: Record<string, { label: string; Icon: React.FC<{ size?: number; className?: string }>; bg: string; color: string; border: string }> = {
   expired:    { label: '認定切れ', Icon: AlertTriangle, bg: '#FFF0F0', color: ALERT_RED,    border: '#FBBFBF' },
   warning:    { label: '期限間近', Icon: Clock,         bg: '#FFFBF0', color: ALERT_YELLOW, border: '#FCD34D' },
-  inprogress: { label: '対応中',   Icon: RefreshCw,     bg: BRAND_LIGHT, color: BRAND,     border: '#B8D8C4' },
-  active:     { label: '利用中',   Icon: CheckCircle,   bg: BRAND_LIGHT, color: BRAND,     border: '#B8D8C4' },
+  inprogress: { label: '対応中',   Icon: RefreshCw,     bg: BRAND_LIGHT, color: BRAND,     border: '#A3DDB7' },
+  active:     { label: '利用中',   Icon: CheckCircle,   bg: BRAND_LIGHT, color: BRAND,     border: '#A3DDB7' },
 }
 
-const avatarColors = [BRAND, '#3D6B54', '#6B7C74', '#E8A838', '#D94F4F']
+const avatarColors = [BRAND, '#27AE60', '#6B7C74', '#E8A838', '#D94F4F']
 
 export function HomePage() {
   const navigate = useNavigate()
@@ -139,7 +139,7 @@ export function HomePage() {
 
       {/* ── 今日の状況バー ── */}
       <div className="flex items-center justify-around rounded-xl mb-5 px-6"
-        style={{ backgroundColor: BRAND_LIGHT, height: '64px', border: `1px solid #B8D8C4` }}>
+        style={{ backgroundColor: BRAND_LIGHT, height: '64px', border: `1px solid #A3DDB7` }}>
         {[
           { value: '5', unit: '名',   label: '担当利用者',         color: TEXT },
           { value: `${visitedCount}/${totalMonitoring}`, unit: '', label: '今月のモニタリング', color: visitedCount === totalMonitoring ? BRAND : TEXT },
@@ -153,7 +153,7 @@ export function HomePage() {
               </p>
               <p className="text-xs font-medium mt-1" style={{ color: TEXT_SUB }}>{item.label}</p>
             </div>
-            {i < arr.length - 1 && <div className="w-px h-7" style={{ backgroundColor: '#B8D8C4' }} />}
+            {i < arr.length - 1 && <div className="w-px h-7" style={{ backgroundColor: '#A3DDB7' }} />}
           </div>
         ))}
       </div>

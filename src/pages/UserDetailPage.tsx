@@ -8,13 +8,14 @@ import { cn } from '@/lib/utils'
 import { users, carePlans, consistencyChecks } from '@/data/mockData'
 import { useEvents, type EventType, EVENT_TYPE_META } from '@/contexts/EventContext'
 
-const BRAND        = '#5C8A70'
-const BRAND_LIGHT  = '#EAF3EE'
+const BRAND        = '#2ECC71'
+const BRAND_LIGHT  = '#E8FAF0'
 const TEXT         = '#2D3A33'
 const TEXT_SUB     = '#6B7C74'
 const BORDER       = '#DDE5E0'
 const ALERT_RED    = '#D94F4F'
 const ALERT_YELLOW = '#E8A838'
+const UNSAVED_BG   = '#F0F0F0'
 
 function formatCarePlanDate(dateStr: string): string {
   const [year, month] = dateStr.split('-')
@@ -37,24 +38,28 @@ function ConfBtn({ onClick }: { onClick?: () => void }) {
   )
 }
 
-function CertBadge({ certEnd }: { certEnd: string }) {
+function CertBadge({ certStart, certEnd }: { certStart: string; certEnd: string }) {
+  const start = new Date(certStart)
   const end = new Date(certEnd)
   const today = new Date(); today.setHours(0,0,0,0); end.setHours(0,0,0,0)
   const diff = Math.floor((today.getTime() - end.getTime()) / (1000*60*60*24))
-  const fmtDate = `${end.getFullYear()}/${end.getMonth()+1}/${end.getDate()}`
+  function fmtDate(d: Date) {
+    return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`
+  }
+  const rangeText = `${fmtDate(start)}〜${fmtDate(end)}`
   if (diff > 0) return (
     <span className="text-sm px-3 py-1 rounded-full font-bold border-2 text-white" style={{ backgroundColor: ALERT_RED, borderColor: '#c43f3f' }}>
-      認定切れ {diff}日 （〜{fmtDate}）
+      認定切れ　{rangeText}
     </span>
   )
   if (diff >= -60) return (
     <span className="text-sm px-3 py-1 rounded-full font-bold border-2" style={{ backgroundColor: '#FFFBF0', color: ALERT_YELLOW, borderColor: '#FCD34D' }}>
-      期限まで残り{-diff}日 （〜{fmtDate}）
+      期限間近　{rangeText}
     </span>
   )
   return (
-    <span className="text-sm px-3 py-1 rounded-full font-bold border-2" style={{ backgroundColor: BRAND_LIGHT, color: BRAND, borderColor: '#B8D8C4' }}>
-      認定 〜{fmtDate}
+    <span className="text-sm px-3 py-1 rounded-full font-bold border-2" style={{ backgroundColor: BRAND_LIGHT, color: '#27AE60', borderColor: '#A3DDB7' }}>
+      {rangeText}
     </span>
   )
 }
@@ -111,7 +116,7 @@ function EventRecordModal({ userId, userName, onRecord, onClose }: EventRecordMo
           <div>
             <label className="text-sm font-semibold mb-2 block" style={{ color: TEXT_SUB }}>発生日</label>
             <input type="date"
-              className="w-full text-base border-2 rounded-xl px-3 py-3 focus:outline-none focus:border-[#5C8A70]"
+              className="w-full text-base border-2 rounded-xl px-3 py-3 focus:outline-none focus:border-[#2ECC71]"
               style={{ borderColor: BORDER }}
               value={date} onChange={e => setDate(e.target.value)} />
           </div>
@@ -119,7 +124,7 @@ function EventRecordModal({ userId, userName, onRecord, onClose }: EventRecordMo
             <div>
               <label className="text-sm font-semibold mb-2 block" style={{ color: TEXT_SUB }}>{placeLabel[type] ?? '場所・施設名'}（任意）</label>
               <input type="text"
-                className="w-full text-base border-2 rounded-xl px-3 py-3 focus:outline-none focus:border-[#5C8A70]"
+                className="w-full text-base border-2 rounded-xl px-3 py-3 focus:outline-none focus:border-[#2ECC71]"
                 style={{ borderColor: BORDER }}
                 value={place} onChange={e => setPlace(e.target.value)} />
             </div>
@@ -127,7 +132,7 @@ function EventRecordModal({ userId, userName, onRecord, onClose }: EventRecordMo
           <div>
             <label className="text-sm font-semibold mb-2 block" style={{ color: TEXT_SUB }}>メモ（任意）</label>
             <textarea
-              className="w-full text-base border-2 rounded-xl px-3 py-3 focus:outline-none focus:border-[#5C8A70] resize-none"
+              className="w-full text-base border-2 rounded-xl px-3 py-3 focus:outline-none focus:border-[#2ECC71] resize-none"
               style={{ borderColor: BORDER }}
               rows={3} value={memo} onChange={e => setMemo(e.target.value)} />
           </div>
@@ -154,7 +159,7 @@ function ConsistencyRow({ documentName, userId }: { documentName: string; userId
   const isOk = check.status === 'consistent'
   return (
     <div className="px-5 py-2 border-b flex items-center gap-2 text-xs"
-      style={{ backgroundColor: isOk ? '#F0FAF4' : '#FFFBF0', borderColor: '#F0F4F2' }}>
+      style={{ backgroundColor: isOk ? '#EDFCF4' : '#FFFBF0', borderColor: '#F0F4F2' }}>
       <span style={{ color: TEXT_SUB }}>ケアプラン期間：<strong style={{ color: TEXT }}>{check.carePlanPeriod}</strong></span>
       <span style={{ color: BORDER }} className="mx-0.5">／</span>
       <span style={{ color: TEXT_SUB }}>書類期間：<strong style={{ color: TEXT }}>{check.documentPeriod}</strong></span>
@@ -185,16 +190,16 @@ function AllDocumentsTab() {
           </div>
         </div>
         <div className="divide-y" style={{ borderColor: '#F0F4F2' }}>
-          <div className="grid grid-cols-[1fr_auto_auto_auto] gap-4 items-center px-5 py-3.5">
+          <div className="grid grid-cols-[1fr_auto_auto_auto] gap-4 items-center px-5 py-3.5" style={{ backgroundColor: UNSAVED_BG }}>
             <span className="text-sm" style={{ color: TEXT }}>〜2026年1月31日</span>
             <span className="text-xs" style={{ color: ALERT_RED }}>期限切れ 128日</span>
             <span className="text-xs px-2.5 py-1 rounded-full border font-semibold" style={{ backgroundColor: '#FFF0F0', color: ALERT_RED, borderColor: '#FBBFBF' }}>△ 要更新</span>
             <RegBtn />
           </div>
-          <div className="grid grid-cols-[1fr_auto_auto_auto] gap-4 items-center px-5 py-3.5" style={{ backgroundColor: BRAND_LIGHT }}>
+          <div className="grid grid-cols-[1fr_auto_auto_auto] gap-4 items-center px-5 py-3.5">
             <span className="text-sm" style={{ color: TEXT }}>〜2023年1月31日</span>
             <span className="text-xs" style={{ color: TEXT_SUB }}>2023/2/1</span>
-            <span className="text-xs px-2.5 py-1 rounded-full border font-semibold" style={{ backgroundColor: BRAND_LIGHT, color: BRAND, borderColor: '#B8D8C4' }}>⊙ 保存済</span>
+            <span className="text-xs px-2.5 py-1 rounded-full border font-semibold" style={{ backgroundColor: BRAND_LIGHT, color: BRAND, borderColor: '#A3DDB7' }}>⊙ 保存済</span>
             <ConfBtn />
           </div>
         </div>
@@ -218,12 +223,12 @@ function AllDocumentsTab() {
         </div>
         <div className="divide-y" style={{ borderColor: '#F0F4F2' }}>
           {[
-            { period: '2026年7月〜12月', date: '期限 2026/7/1', dateColor: ALERT_RED,    status: '🔴 未着',         statusBg: '#FFF0F0', statusColor: ALERT_RED,    statusBorder: '#FBBFBF', btn: 'reg' },
-            { period: '2026年1月〜6月',  date: '2026/1/15',     dateColor: TEXT_SUB,    status: '✅ 整合・受取済', statusBg: BRAND_LIGHT, statusColor: BRAND,      statusBorder: '#B8D8C4', btn: 'conf' },
-            { period: '2025年7月〜12月', date: '2025/7/3',      dateColor: TEXT_SUB,    status: '⊙ 受取済',       statusBg: BRAND_LIGHT, statusColor: BRAND,      statusBorder: '#B8D8C4', btn: 'conf' },
+            { period: '2026年7月〜12月', date: '期限 2026/7/1', dateColor: ALERT_RED,    status: '🔴 未着',         statusBg: '#FFF0F0',   statusColor: ALERT_RED,    statusBorder: '#FBBFBF', btn: 'reg' },
+            { period: '2026年1月〜6月',  date: '2026/1/15',     dateColor: TEXT_SUB,    status: '✅ 整合・受取済', statusBg: BRAND_LIGHT, statusColor: BRAND,        statusBorder: '#A3DDB7', btn: 'conf' },
+            { period: '2025年7月〜12月', date: '2025/7/3',      dateColor: TEXT_SUB,    status: '⊙ 受取済',       statusBg: BRAND_LIGHT, statusColor: BRAND,        statusBorder: '#A3DDB7', btn: 'conf' },
           ].map(row => (
             <div key={row.period} className="grid grid-cols-[1fr_auto_auto_auto] gap-4 items-center px-5 py-3.5"
-              style={row.btn === 'conf' ? { backgroundColor: BRAND_LIGHT } : {}}>
+              style={row.btn === 'conf' ? {} : { backgroundColor: UNSAVED_BG }}>
               <span className="text-sm" style={{ color: TEXT }}>{row.period}</span>
               <span className="text-xs" style={{ color: row.dateColor }}>{row.date}</span>
               <span className="text-xs px-2.5 py-1 rounded-full border font-semibold whitespace-nowrap"
@@ -252,11 +257,11 @@ function AllDocumentsTab() {
         </div>
         <div className="divide-y" style={{ borderColor: '#F0F4F2' }}>
           {[
-            { period: '2026年4月〜6月', date: '期限 2026/6/30', dateColor: ALERT_YELLOW, status: '⚠️ 期限間近', statusBg: '#FFFBF0', statusColor: ALERT_YELLOW, statusBorder: '#FCD34D', btn: 'reg', rowBg: '#FFFBF0' },
-            { period: '2026年1月〜3月', date: '2026/3/15',       dateColor: TEXT_SUB,    status: '⊙ 受取済',  statusBg: BRAND_LIGHT, statusColor: BRAND,      statusBorder: '#B8D8C4', btn: 'conf', rowBg: BRAND_LIGHT },
+            { period: '2026年4月〜6月', date: '期限 2026/6/30', dateColor: ALERT_YELLOW, status: '⚠️ 期限間近', statusBg: '#FFFBF0',   statusColor: ALERT_YELLOW, statusBorder: '#FCD34D', btn: 'reg' },
+            { period: '2026年1月〜3月', date: '2026/3/15',       dateColor: TEXT_SUB,    status: '⊙ 受取済',  statusBg: BRAND_LIGHT, statusColor: BRAND,        statusBorder: '#A3DDB7', btn: 'conf' },
           ].map(row => (
             <div key={row.period} className="grid grid-cols-[1fr_auto_auto_auto] gap-4 items-center px-5 py-3.5"
-              style={{ backgroundColor: row.rowBg }}>
+              style={row.btn === 'conf' ? {} : { backgroundColor: UNSAVED_BG }}>
               <span className="text-sm" style={{ color: TEXT }}>{row.period}</span>
               <span className="text-xs" style={{ color: row.dateColor }}>{row.date}</span>
               <span className="text-xs px-2.5 py-1 rounded-full border font-semibold whitespace-nowrap"
@@ -275,22 +280,22 @@ function AllDocumentsTab() {
             <span className="font-semibold text-sm" style={{ color: TEXT }}>アセスメントシート</span>
             <span className="text-xs" style={{ color: TEXT_SUB }}>ケアマネ作成</span>
           </div>
-          <span className="text-xs px-2.5 py-1 rounded-full font-semibold border" style={{ backgroundColor: BRAND_LIGHT, color: BRAND, borderColor: '#B8D8C4' }}>↻ 対応中 1/3</span>
+          <span className="text-xs px-2.5 py-1 rounded-full font-semibold border" style={{ backgroundColor: BRAND_LIGHT, color: BRAND, borderColor: '#A3DDB7' }}>↻ 対応中 1/3</span>
         </div>
         <div className="divide-y" style={{ borderColor: '#F0F4F2' }}>
           {[
-            { name: 'アセスメントシート（課題分析）', date: '未提出', ok: false },
-            { name: '主治医意見書（写し）',           date: '未提出', ok: false },
+            { name: 'アセスメントシート（課題分析）', date: '未提出',    ok: false },
+            { name: '主治医意見書（写し）',           date: '未提出',    ok: false },
             { name: '再アセスメントシート',           date: '2026/4/24', ok: true },
           ].map(row => (
             <div key={row.name}
               className="grid grid-cols-[1fr_auto_auto_auto] gap-4 items-center px-5 py-3.5"
-              style={row.ok ? { backgroundColor: BRAND_LIGHT } : {}}>
+              style={row.ok ? {} : { backgroundColor: UNSAVED_BG }}>
               <span className="text-sm" style={{ color: TEXT }}>{row.name}</span>
               <span className="text-xs" style={{ color: TEXT_SUB }}>{row.date}</span>
               <span className={cn('text-xs px-2.5 py-1 rounded-full border font-semibold')}
                 style={row.ok
-                  ? { backgroundColor: BRAND_LIGHT, color: BRAND, borderColor: '#B8D8C4' }
+                  ? { backgroundColor: BRAND_LIGHT, color: BRAND, borderColor: '#A3DDB7' }
                   : { backgroundColor: '#FFFBF0', color: ALERT_YELLOW, borderColor: '#FCD34D' }}>
                 {row.ok ? '⊙ 保存済' : '△ 未提出'}
               </span>
@@ -306,9 +311,9 @@ function AllDocumentsTab() {
 // ── File upload modal ─────────────────────────────────────────────────────
 interface UploadModalProps { docName: string; onUpload: (file: File) => void; onClose: () => void }
 function UploadModal({ docName, onUpload, onClose }: UploadModalProps) {
-  const [file, setFile]         = useState<File | null>(null)
+  const [file, setFile]           = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
-  const [done, setDone]         = useState(false)
+  const [done, setDone]           = useState(false)
 
   function handleUpload() {
     if (!file) return
@@ -327,7 +332,7 @@ function UploadModal({ docName, onUpload, onClose }: UploadModalProps) {
         {!done ? (
           <>
             <label className="block w-full cursor-pointer">
-              <div className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors ${file ? '' : 'hover:border-[#5C8A70]'}`}
+              <div className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors ${file ? '' : 'hover:border-[#2ECC71]'}`}
                 style={{ borderColor: file ? BRAND : BORDER, backgroundColor: file ? BRAND_LIGHT : undefined }}>
                 {file
                   ? <><p className="text-sm font-medium" style={{ color: TEXT }}>{file.name}</p><p className="text-xs mt-1" style={{ color: TEXT_SUB }}>{(file.size / 1024).toFixed(0)} KB</p></>
@@ -416,13 +421,13 @@ function JigyoshoDocumentsTab() {
             ].map(row => (
               <div key={row.key}
                 className="grid grid-cols-[1fr_70px_110px_90px_auto_auto] gap-3 items-center px-5 py-3.5"
-                style={isUploaded(row.key) ? { backgroundColor: BRAND_LIGHT } : {}}>
+                style={isUploaded(row.key) ? {} : { backgroundColor: UNSAVED_BG }}>
                 <span className="text-sm font-medium" style={{ color: TEXT }}>{row.name}</span>
                 <span className="text-sm" style={{ color: TEXT_SUB }}>{row.cycle}</span>
                 <span className="text-sm" style={{ color: TEXT_SUB }}>{row.period}</span>
                 <span className="text-sm font-medium" style={{ color: row.deadlineColor }}>{row.deadline}</span>
                 {isUploaded(row.key)
-                  ? <span className="text-xs px-2.5 py-1 rounded-full border font-semibold whitespace-nowrap" style={{ backgroundColor: BRAND_LIGHT, color: BRAND, borderColor: '#B8D8C4' }}>⊙ 受取済</span>
+                  ? <span className="text-xs px-2.5 py-1 rounded-full border font-semibold whitespace-nowrap" style={{ backgroundColor: BRAND_LIGHT, color: BRAND, borderColor: '#A3DDB7' }}>⊙ 受取済</span>
                   : row.status}
                 {isUploaded(row.key) ? <ConfBtn /> : <RegBtn onClick={() => openUpload(row.key, row.name)} />}
               </div>
@@ -442,13 +447,13 @@ function JigyoshoDocumentsTab() {
             {[{ key: 'houmon-report-2026-05', name: '訪問看護報告書', cycle: '毎月', period: '2026年5月', deadline: '2026/6/10', deadlineColor: ALERT_RED, status: STATUS_MIATSU }].map(row => (
               <div key={row.key}
                 className="grid grid-cols-[1fr_70px_110px_90px_auto_auto] gap-3 items-center px-5 py-3.5"
-                style={isUploaded(row.key) ? { backgroundColor: BRAND_LIGHT } : {}}>
+                style={isUploaded(row.key) ? {} : { backgroundColor: UNSAVED_BG }}>
                 <span className="text-sm font-medium" style={{ color: TEXT }}>{row.name}</span>
                 <span className="text-sm" style={{ color: TEXT_SUB }}>{row.cycle}</span>
                 <span className="text-sm" style={{ color: TEXT_SUB }}>{row.period}</span>
                 <span className="text-sm font-medium" style={{ color: row.deadlineColor }}>{row.deadline}</span>
                 {isUploaded(row.key)
-                  ? <span className="text-xs px-2.5 py-1 rounded-full border font-semibold whitespace-nowrap" style={{ backgroundColor: BRAND_LIGHT, color: BRAND, borderColor: '#B8D8C4' }}>⊙ 受取済</span>
+                  ? <span className="text-xs px-2.5 py-1 rounded-full border font-semibold whitespace-nowrap" style={{ backgroundColor: BRAND_LIGHT, color: BRAND, borderColor: '#A3DDB7' }}>⊙ 受取済</span>
                   : row.status}
                 {isUploaded(row.key) ? <ConfBtn /> : <RegBtn onClick={() => openUpload(row.key, row.name)} />}
               </div>
@@ -462,7 +467,7 @@ function JigyoshoDocumentsTab() {
             <Building2 size={14} style={{ color: BRAND }} />
             <span className="font-semibold text-sm" style={{ color: TEXT }}>福祉用具ウラシマ</span>
             <span className="text-xs" style={{ color: TEXT_SUB }}>（福祉用具貸与）</span>
-            <span className="ml-auto text-xs px-2.5 py-1 rounded-full border font-semibold" style={{ backgroundColor: BRAND_LIGHT, color: BRAND, borderColor: '#B8D8C4' }}>✓ すべて揃っています</span>
+            <span className="ml-auto text-xs px-2.5 py-1 rounded-full border font-semibold" style={{ backgroundColor: BRAND_LIGHT, color: BRAND, borderColor: '#A3DDB7' }}>✓ すべて揃っています</span>
           </div>
           {showUraShima && <div className="px-5 py-3.5 text-sm" style={{ color: TEXT_SUB }}>過去の書類はありません。</div>}
           <div className="px-5 py-3 border-t text-center" style={{ borderColor: '#F0F4F2' }}>
@@ -547,14 +552,14 @@ function RecordsTab() {
                       className="border-b last:border-0 cursor-pointer transition-colors"
                       style={{
                         borderColor: '#F0F4F2',
-                        backgroundColor: isVisited ? BRAND_LIGHT : undefined,
+                        backgroundColor: isVisited ? undefined : UNSAVED_BG,
                       }}
                       onClick={() => navigate(`/users/${u.id}?maintab=kiroku`)}>
                       <td className="px-5 py-3 font-semibold" style={{ color: TEXT }}>{u.name}</td>
                       <td className="px-5 py-3" style={{ color: TEXT_SUB }}>2026-06</td>
                       <td className="px-5 py-3" onClick={e => e.stopPropagation()}>
                         <input type="date"
-                          className="text-xs border rounded-lg px-2 py-1 focus:outline-none focus:border-[#5C8A70]"
+                          className="text-xs border rounded-lg px-2 py-1 focus:outline-none focus:border-[#2ECC71]"
                           style={{ borderColor: BORDER, color: TEXT }}
                           value={visitDates[u.id] ?? ''}
                           onChange={e => setVisitDates(prev => ({ ...prev, [u.id]: e.target.value }))} />
@@ -567,7 +572,7 @@ function RecordsTab() {
                       </td>
                       <td className="px-5 py-3">
                         {recorded
-                          ? <span className="text-xs px-2.5 py-0.5 rounded-full font-medium border" style={{ backgroundColor: BRAND_LIGHT, color: BRAND, borderColor: '#B8D8C4' }}>入力済</span>
+                          ? <span className="text-xs px-2.5 py-0.5 rounded-full font-medium border" style={{ backgroundColor: BRAND_LIGHT, color: BRAND, borderColor: '#A3DDB7' }}>入力済</span>
                           : <span className="text-xs px-2.5 py-0.5 rounded-full font-medium border" style={{ backgroundColor: '#F3F6F4', color: TEXT_SUB, borderColor: BORDER }}>未入力</span>
                         }
                       </td>
@@ -609,18 +614,18 @@ function MyDocumentsTab() {
         </div>
         <div className="divide-y" style={{ borderColor: '#F0F4F2' }}>
           {[
-            { name: '居宅サービス計画書（第1〜2表）', date: '2026/1/5',  ok: true },
-            { name: '週間サービス計画表（第3表）',     date: '2026/1/5',  ok: true },
-            { name: 'アセスメントシート（課題分析）',  date: '未作成',    ok: false },
+            { name: '居宅サービス計画書（第1〜2表）', date: '2026/1/5', ok: true },
+            { name: '週間サービス計画表（第3表）',     date: '2026/1/5', ok: true },
+            { name: 'アセスメントシート（課題分析）',  date: '未作成',   ok: false },
           ].map(row => (
             <div key={row.name}
               className="grid grid-cols-[1fr_auto_auto_auto] gap-4 items-center px-5 py-3.5"
-              style={row.ok ? { backgroundColor: BRAND_LIGHT } : {}}>
+              style={row.ok ? {} : { backgroundColor: UNSAVED_BG }}>
               <span className="text-sm" style={{ color: TEXT }}>{row.name}</span>
               <span className="text-xs" style={{ color: TEXT_SUB }}>{row.date}</span>
               <span className="text-xs px-2.5 py-1 rounded-full border font-semibold"
                 style={row.ok
-                  ? { backgroundColor: BRAND_LIGHT, color: BRAND, borderColor: '#B8D8C4' }
+                  ? { backgroundColor: BRAND_LIGHT, color: BRAND, borderColor: '#A3DDB7' }
                   : { backgroundColor: '#FFFBF0', color: ALERT_YELLOW, borderColor: '#FCD34D' }}>
                 {row.ok ? '⊙ 保存済' : '△ 未作成'}
               </span>
@@ -638,7 +643,7 @@ function MyDocumentsTab() {
             <span className="font-semibold text-sm" style={{ color: TEXT }}>モニタリング報告書</span>
             <span className="text-xs" style={{ color: TEXT_SUB }}>毎月</span>
           </div>
-          <span className="text-xs px-2.5 py-1 rounded-full font-semibold border" style={{ backgroundColor: BRAND_LIGHT, color: BRAND, borderColor: '#B8D8C4' }}>↻ 対応中</span>
+          <span className="text-xs px-2.5 py-1 rounded-full font-semibold border" style={{ backgroundColor: BRAND_LIGHT, color: BRAND, borderColor: '#A3DDB7' }}>↻ 対応中</span>
         </div>
         <div className="divide-y" style={{ borderColor: '#F0F4F2' }}>
           {[
@@ -648,12 +653,12 @@ function MyDocumentsTab() {
           ].map(row => (
             <div key={row.month}
               className="grid grid-cols-[1fr_auto_auto_auto] gap-4 items-center px-5 py-3.5"
-              style={row.ok ? { backgroundColor: BRAND_LIGHT } : {}}>
+              style={row.ok ? {} : { backgroundColor: UNSAVED_BG }}>
               <span className="text-sm" style={{ color: TEXT }}>{row.month}</span>
               <span className="text-xs" style={{ color: TEXT_SUB }}>{row.date}</span>
               <span className="text-xs px-2.5 py-1 rounded-full border font-semibold"
                 style={row.ok
-                  ? { backgroundColor: BRAND_LIGHT, color: BRAND, borderColor: '#B8D8C4' }
+                  ? { backgroundColor: BRAND_LIGHT, color: BRAND, borderColor: '#A3DDB7' }
                   : { backgroundColor: '#FFFBF0', color: ALERT_YELLOW, borderColor: '#FCD34D' }}>
                 {row.ok ? '⊙ 作成済' : '△ 未作成'}
               </span>
@@ -671,7 +676,7 @@ function MyDocumentsTab() {
             <span className="font-semibold text-sm" style={{ color: TEXT }}>担当者会議録</span>
             <span className="text-xs" style={{ color: TEXT_SUB }}>ケアプラン更新ごと</span>
           </div>
-          <span className="text-xs px-2.5 py-1 rounded-full font-semibold border" style={{ backgroundColor: BRAND_LIGHT, color: BRAND, borderColor: '#B8D8C4' }}>✓ 揃っています</span>
+          <span className="text-xs px-2.5 py-1 rounded-full font-semibold border" style={{ backgroundColor: BRAND_LIGHT, color: BRAND, borderColor: '#A3DDB7' }}>✓ 揃っています</span>
         </div>
 
         {/* 新規作成フォーム */}
@@ -681,11 +686,11 @@ function MyDocumentsTab() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-semibold mb-1 block" style={{ color: TEXT_SUB }}>会議日</label>
-                <input type="date" className="w-full text-sm border rounded-lg px-3 py-2 focus:outline-none focus:border-[#5C8A70]" style={{ borderColor: BORDER }} />
+                <input type="date" className="w-full text-sm border rounded-lg px-3 py-2 focus:outline-none focus:border-[#2ECC71]" style={{ borderColor: BORDER }} />
               </div>
               <div>
                 <label className="text-xs font-semibold mb-1 block" style={{ color: TEXT_SUB }}>出席者</label>
-                <input type="text" placeholder="例）石橋、田中（通所）、家族" className="w-full text-sm border rounded-lg px-3 py-2 focus:outline-none focus:border-[#5C8A70]" style={{ borderColor: BORDER }} />
+                <input type="text" placeholder="例）石橋、田中（通所）、家族" className="w-full text-sm border rounded-lg px-3 py-2 focus:outline-none focus:border-[#2ECC71]" style={{ borderColor: BORDER }} />
               </div>
             </div>
             <div>
@@ -701,7 +706,7 @@ function MyDocumentsTab() {
                 <span className="text-xs" style={{ color: TEXT_SUB }}>または</span>
               </div>
               <textarea
-                className="w-full text-sm border rounded-lg px-3 py-2 focus:outline-none focus:border-[#5C8A70] resize-none"
+                className="w-full text-sm border rounded-lg px-3 py-2 focus:outline-none focus:border-[#2ECC71] resize-none"
                 style={{ borderColor: BORDER, height: '120px' }}
                 placeholder="テキストで入力..."
               />
@@ -716,11 +721,10 @@ function MyDocumentsTab() {
             { period: '2025年7月更新', date: '2025/7/8' },
           ].map(row => (
             <div key={row.period}
-              className="grid grid-cols-[1fr_auto_auto_auto] gap-4 items-center px-5 py-3.5"
-              style={{ backgroundColor: BRAND_LIGHT }}>
+              className="grid grid-cols-[1fr_auto_auto_auto] gap-4 items-center px-5 py-3.5">
               <span className="text-sm" style={{ color: TEXT }}>{row.period}</span>
               <span className="text-xs" style={{ color: TEXT_SUB }}>{row.date}</span>
-              <span className="text-xs px-2.5 py-1 rounded-full border font-semibold" style={{ backgroundColor: BRAND_LIGHT, color: BRAND, borderColor: '#B8D8C4' }}>⊙ 保存済</span>
+              <span className="text-xs px-2.5 py-1 rounded-full border font-semibold" style={{ backgroundColor: BRAND_LIGHT, color: BRAND, borderColor: '#A3DDB7' }}>⊙ 保存済</span>
               <ConfBtn />
             </div>
           ))}
@@ -749,8 +753,8 @@ function OverviewTab({ user }: { user: typeof users[0] }) {
             <p className="font-semibold" style={{ color: TEXT }}>{user.manager}</p>
           </div>
           <div>
-            <p className="text-xs mb-1" style={{ color: TEXT_SUB }}>認定有効期限</p>
-            <CertBadge certEnd={user.certEnd} />
+            <p className="text-xs mb-1" style={{ color: TEXT_SUB }}>認定有効期間</p>
+            <CertBadge certStart={user.certStart} certEnd={user.certEnd} />
           </div>
           <div>
             <p className="text-xs mb-0.5" style={{ color: TEXT_SUB }}>被保険者番号</p>
@@ -777,9 +781,9 @@ function OverviewTab({ user }: { user: typeof users[0] }) {
         <h3 className="font-semibold mb-4" style={{ color: TEXT }}>クイックリンク</h3>
         <div className="grid grid-cols-3 gap-3">
           {[
-            { label: '自分の書類',   desc: 'ケアプラン・アセスメント等', path: `?maintab=shorui&tab=jibun` },
-            { label: '事業所書類',   desc: '通所・訪問看護等',           path: `?maintab=shorui&tab=jigyosho` },
-            { label: '記録',         desc: 'モニタリング・スケジュール', path: `?maintab=kiroku` },
+            { label: '自分の書類', desc: 'ケアプラン・アセスメント等', path: `?maintab=shorui&tab=jibun` },
+            { label: '事業所書類', desc: '通所・訪問看護等',           path: `?maintab=shorui&tab=jigyosho` },
+            { label: '記録',       desc: 'モニタリング・スケジュール', path: `?maintab=kiroku` },
           ].map(link => (
             <button key={link.label}
               onClick={() => navigate(`/users/${user.id}${link.path}`)}
@@ -818,7 +822,6 @@ function DocumentsTab({ user }: { user: typeof users[0] }) {
 
   return (
     <div>
-      {/* ケアプラン期間 info bar */}
       {carePlan && (
         <div className="px-6 py-3 bg-white border-b flex items-center gap-4 text-sm" style={{ borderColor: BORDER }}>
           <span className="font-medium" style={{ color: TEXT_SUB }}>ケアプラン期間：</span>
@@ -832,7 +835,6 @@ function DocumentsTab({ user }: { user: typeof users[0] }) {
         </div>
       )}
 
-      {/* Sub-tab pill buttons */}
       <div className="flex items-center gap-2 px-6 py-4 bg-white border-b" style={{ borderColor: BORDER }}>
         {subTabs.map(t => (
           <button key={t.id} onClick={() => setSubTab(t.id)}
@@ -913,12 +915,12 @@ export function UserDetailPage() {
               <p className="text-xs mt-0.5" style={{ color: TEXT_SUB }}>
                 担当：{user.manager} ／ 被保険者番号 {user.hokenNumber}
               </p>
-              <div className="flex items-center gap-2 mt-2">
+              <div className="flex items-center gap-2 mt-2 flex-wrap">
                 <span className="text-xs px-2.5 py-1 rounded-full font-semibold border"
-                  style={{ backgroundColor: BRAND_LIGHT, color: BRAND, borderColor: '#B8D8C4' }}>
+                  style={{ backgroundColor: BRAND_LIGHT, color: BRAND, borderColor: '#A3DDB7' }}>
                   {user.careLevel}
                 </span>
-                <CertBadge certEnd={user.certEnd} />
+                <CertBadge certStart={user.certStart} certEnd={user.certEnd} />
               </div>
             </div>
           </div>

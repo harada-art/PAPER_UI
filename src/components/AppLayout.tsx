@@ -7,7 +7,7 @@ import {
 import { cn } from '@/lib/utils'
 import { users } from '@/data/mockData'
 
-const BRAND        = '#5C8A70'
+const BRAND        = '#2ECC71'
 const SIDEBAR_BG   = '#2D3A33'
 const SIDEBAR_TEXT = '#E8F0EC'
 const BORDER       = '#DDE5E0'
@@ -204,27 +204,10 @@ export function AppLayout({ children }: AppLayoutProps) {
         </aside>
 
         {/* ── Main content ── */}
-        <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
+        <main className="flex-1 overflow-y-auto">
           {children}
         </main>
       </div>
-
-      {/* ── Mobile bottom nav ── */}
-      <nav className="md:hidden flex items-center justify-around bg-white flex-shrink-0 fixed bottom-0 left-0 right-0 z-20"
-        style={{ borderTop: `1px solid ${BORDER}`, paddingBottom: 'env(safe-area-inset-bottom, 8px)', paddingTop: '8px' }}>
-        <Link to="/" className="flex flex-col items-center gap-0.5 px-5 py-1">
-          <Home size={20} style={{ color: location.pathname === '/' ? BRAND : '#6B7C74' }} />
-          <span className="text-xs font-medium" style={{ color: location.pathname === '/' ? BRAND : '#6B7C74' }}>ホーム</span>
-        </Link>
-        <Link to="/users" className="flex flex-col items-center gap-0.5 px-5 py-1">
-          <Users size={20} style={{ color: location.pathname.startsWith('/users') ? BRAND : '#6B7C74' }} />
-          <span className="text-xs font-medium" style={{ color: location.pathname.startsWith('/users') ? BRAND : '#6B7C74' }}>利用者</span>
-        </Link>
-        <Link to="/settings" className="flex flex-col items-center gap-0.5 px-5 py-1">
-          <Settings size={20} style={{ color: location.pathname.startsWith('/settings') ? BRAND : '#6B7C74' }} />
-          <span className="text-xs font-medium" style={{ color: location.pathname.startsWith('/settings') ? BRAND : '#6B7C74' }}>設定</span>
-        </Link>
-      </nav>
     </div>
   )
 }

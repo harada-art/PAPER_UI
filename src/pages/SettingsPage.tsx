@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { ChevronRight } from 'lucide-react'
 
-const BRAND_LIGHT = '#EAF3EE'
+const BRAND_LIGHT = '#E8FAF0'
 
 export function SettingsPage() {
   const items = [
